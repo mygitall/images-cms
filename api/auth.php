@@ -165,8 +165,19 @@ function buildUserResponse($user) {
         'usage' => [
             'totalGenerations' => $totalGenerations,
             'totalGenerationCredits' => $totalGenerationCredits,
-            'purchasedCredits' => 0
+            'purchasedCredits' => 0,
+            'apiCalls' => 0,
+            'dailyLimit' => (int)($row['daily_limit'] ?? 0),
+            'totalLimit' => (int)($row['total_limit'] ?? 0)
         ],
         'recentTransactions' => $recentTransactions
     ];
+
+    // 补充 API 调用次数（images20 核心统计）
+    try {
+        $stmt5 = $pdo->prepare('SELECT COUNT(*) FROM api_logs WHERE user_id = ?');
+        $stmt5->execute([$uid]);
+        $result['usage']['apiCalls'] = (int)$stmt5->fetchColumn();
+    } catch (\Throwable $e) {}
+    return $result;
 }

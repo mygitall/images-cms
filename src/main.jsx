@@ -1783,7 +1783,7 @@ function AdminPanel({ open, language, session, casesById, onClose, onOpenCase })
   useBodyScrollLock(open);
 
   async function loadAdminData(nextRange = range, nextStart = customStart, nextEnd = customEnd) {
-    if (!session?.access_token) {
+    if (!session?.access_token && !session?.phpSession) {
       setStatus('error');
       setMessage(t.adminOnly);
       return;
@@ -2223,10 +2223,10 @@ function BillingPanel({
 
   useEffect(() => {
     if (open) loadBilling();
-  }, [open, session?.access_token]);
+  }, [open, session?.access_token, session?.phpSession]);
 
   async function handleCheckout(product) {
-    if (!session?.access_token) {
+    if (!session?.access_token && !session?.phpSession) {
       onAuthRequired();
       return;
     }
@@ -2263,7 +2263,7 @@ function BillingPanel({
   }
 
   async function handlePortal() {
-    if (!session?.access_token) {
+    if (!session?.access_token && !session?.phpSession) {
       onAuthRequired();
       return;
     }
@@ -2331,7 +2331,7 @@ function BillingPanel({
           </div>
         </div>
 
-        {!session?.access_token ? (
+        {!session?.access_token && !session?.phpSession ? (
           <div className="billingState">
             <p>{t.authRequired}</p>
             <button type="button" onClick={onAuthRequired}>
