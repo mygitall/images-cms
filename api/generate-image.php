@@ -86,30 +86,38 @@ if (empty($orderedProfiles)) {
 ignore_user_abort(true);
 set_time_limit(180);
 
-$requestPayload = [
-    'model'  => 'gpt-image-2',
-    'prompt' => $prompt,
-    'n'      => 1,
-    'size'   => '1024x1024'
-];
-
 if (!empty($referenceImages)) {
-    // 尝试多种格式兼容不同 API
-    $requestPayload['images'] = $referenceImages;                         // 数组，data URL
-    $requestPayload['reference_image_urls'] = $referenceImages;           // 数组，data URL
+    // 用 chat/completions 多模态格式
+    $content = [['type' => 'text', 'text' => $prompt]];
+    foreach ($referenceImages as $ref) {
+        $content[] = ['type' => 'image_url', 'image_url' => ['url' => $ref]];
+    }
 
-    // 也提取纯 base64 做备选
-    $b64refs = array_map(function ($img) {
-        return preg_replace('#^data:image/\w+;base64,#', '', $img);
-    }, $referenceImages);
-    $requestPayload['reference_images'] = $b64refs;                       // 数组，纯 base64
+    $requestPayload = [
+        'model' => 'gpt-image-2',
+        'messages' => [['role' => 'user', 'content' => $content]],
+        'n' => 1,
+        'size' => '1024x1024'
+    ];
+
+    $useChatEndpoint = true;
+    // 去掉 prompt 长度限制，多模态格式不需要
+    $maxPromptLength = 999999;
+} else {
+    $requestPayload = [
+        'model' => 'gpt-image-2',
+        'prompt' => $prompt,
+        'n' => 1,
+        'size' => '1024x1024'
+    ];
+    $useChatEndpoint = false;
 }
 
 $requestBody = json_encode($requestPayload);
 
 // ---- DEBUG ----
 @file_put_contents(__DIR__ . '/../uploads/debug_request.json',
-    json_encode(['time' => date('Y-m-d H:i:s'), 'has_refs' => !empty($referenceImages), 'ref_count' => count($referenceImages), 'keys' => array_keys($requestPayload)], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)
+    json_encode(['time' => date('Y-m-d H:i:s'), 'has_refs' => !empty($referenceImages), 'ref_count' => count($referenceImages), 'chat_format' => $useChatEndpoint, 'keys' => array_keys($requestPayload)], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)
 );
 
 $response = null;
@@ -123,7 +131,7 @@ foreach ($orderedProfiles as $profile) {
     $baseUrl = cleanBaseUrl($profile['base_url'] ?? '');
     if (empty($apiKey) || empty($baseUrl)) continue;
 
-    $apiUrl = $baseUrl . '/v1/images/generations';
+    $apiUrl = $baseUrl . (!empty($useChatEndpoint) ? '/v1/chat/completions' : '/v1/images/generations');
 
     for ($retry = 0; $retry <= $maxRetries; $retry++) {
         $ch = curl_init($apiUrl);
@@ -162,7 +170,7 @@ try {
     $logStmt = $pdo->prepare('INSERT INTO api_logs (user_id, endpoint, method, status, http_code, duration_ms, error_msg) VALUES (?, ?, ?, ?, ?, ?, ?)');
     $logStmt->execute([
         $uid,
-        '/v1/images/generations',
+        !empty($useChatEndpoint) ? '/v1/chat/completions' : '/v1/images/generations',
         'POST',
         $httpCode >= 200 && $httpCode < 300 ? 'success' : 'error',
         $httpCode,
@@ -181,8 +189,22 @@ $payload = json_decode($response, true);
 if (!is_array($payload)) {
     json_out(['ok' => false, 'error' => 'GENERATION_FAILED', 'message' => "API returned non-JSON response (HTTP {$httpCode})"], 502);
 }
-$b64 = $payload['data'][0]['b64_json'] ?? '';
-$imageUrl = $payload['data'][0]['url'] ?? '';
+
+// 解析响应：兼容 images API (data[].b64_json) 和 chat API (choices[].message.content)
+$b64 = '';
+$imageUrl = '';
+if (!empty($payload['data'][0]['b64_json'])) {
+    $b64 = $payload['data'][0]['b64_json'];
+} elseif (!empty($payload['data'][0]['url'])) {
+    $imageUrl = $payload['data'][0]['url'];
+} elseif (!empty($payload['choices'][0]['message']['content'])) {
+    foreach ($payload['choices'][0]['message']['content'] as $part) {
+        if (($part['type'] ?? '') === 'image_url' && !empty($part['image_url']['url'])) {
+            $imageUrl = $part['image_url']['url'];
+            break;
+        }
+    }
+}
 
 if ($httpCode === 401 || $httpCode === 403) {
     $errorMsg = $payload['error']['message'] ?? '无效的 API Key';
