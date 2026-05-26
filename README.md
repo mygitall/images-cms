@@ -473,6 +473,23 @@ All prompt cases and generated images in this repository were initially inspired
 
 [![Star History Chart](https://api.star-history.com/svg?repos=freestylefly/awesome-gpt-image-2&type=Date)](https://star-history.com/#freestylefly/awesome-gpt-image-2&Date)
 
+## Syncing from Upstream
+
+This project is forked from [freestylefly/awesome-gpt-image-2](https://github.com/freestylefly/awesome-gpt-image-2). When the upstream repository updates templates or cases, run:
+
+```bash
+git fetch old-origin main     # Pull latest from upstream
+git merge old-origin/main     # Merge into your local branch
+```
+
+If there are merge conflicts, resolve them manually, then rebuild:
+
+```bash
+npm run build
+```
+
+Alternatively, tell Claude Code: **"Help me sync upstream template updates"** and it will run the steps above for you.
+
 ## 📜 License
 
 This project is open source under the [MIT License](LICENSE). You can use, modify, distribute, and build on it freely while preserving the license notice.
