@@ -1,0 +1,3 @@
+[submodule "images20"]
+	path = images20
+	url = https://github.com/mygitall/images2cms.git
