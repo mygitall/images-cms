@@ -787,6 +787,8 @@ function generationErrorMessage(error, language) {
 }
 
 function getAuthHeaders(session) {
+  // PHP session auth — cookies handle it, no Authorization header needed
+  if (session?.phpSession) return {};
   return session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {};
 }
 
@@ -1130,8 +1132,12 @@ function GoogleIcon() {
   );
 }
 
-function AuthModal({ open, language, onClose }) {
+function AuthModal({ open, language, onClose, onSignIn }) {
   const t = copy[language];
+  const [authMode, setAuthMode] = useState('login'); // 'login' | 'register'
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [password2, setPassword2] = useState('');
   const [status, setStatus] = useState('idle');
   const [message, setMessage] = useState('');
   useBodyScrollLock(open);
@@ -1140,32 +1146,42 @@ function AuthModal({ open, language, onClose }) {
     if (!open) return;
     setStatus('idle');
     setMessage('');
+    setUsername('');
+    setPassword('');
+    setPassword2('');
   }, [open]);
 
   if (!open) return null;
 
-  const redirectTo = `${window.location.origin}${window.location.pathname}`;
-
-  async function handleGoogleSignIn() {
-    if (!isSupabaseConfigured || !supabase) {
-      setStatus('error');
-      setMessage(t.authNotConfigured);
-      return;
-    }
+  async function handleSubmit(event) {
+    event.preventDefault();
+    const trimmedUser = username.trim();
+    if (trimmedUser.length < 2) { setMessage('用户名至少 2 位'); setStatus('error'); return; }
+    if (password.length < 4) { setMessage('密码至少 4 位'); setStatus('error'); return; }
+    if (authMode === 'register' && password !== password2) { setMessage('两次密码不一致'); setStatus('error'); return; }
 
     setStatus('loading');
     setMessage('');
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo
-      }
-    });
-
-    if (error) {
+    try {
+      const response = await fetch(`/api/auth.php?action=${authMode}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: trimmedUser, password })
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || 'AUTH_FAILED');
+      if (onSignIn) onSignIn(payload);
+      onClose();
+    } catch (err) {
       setStatus('error');
-      setMessage(authErrorMessage(error, language));
+      setMessage(err.message || authErrorMessage(err, language));
     }
+  }
+
+  function toggleMode() {
+    setAuthMode((m) => (m === 'login' ? 'register' : 'login'));
+    setMessage('');
+    setStatus('idle');
   }
 
   return (
@@ -1183,11 +1199,42 @@ function AuthModal({ open, language, onClose }) {
         <div className="authIcon">
           <UserCircle size={28} />
         </div>
-        <h2 id="auth-title">{t.signInTitle}</h2>
-        <p>{t.signInSubtitle}</p>
-        <button className="googleButton" type="button" onClick={handleGoogleSignIn} disabled={status === 'loading'}>
-          {status === 'loading' ? <LoaderCircle className="spinIcon" size={18} /> : <GoogleIcon />}
-          {t.continueWithGoogle}
+        <h2 id="auth-title">{authMode === 'login' ? (language === 'zh' ? '登录' : 'Sign In') : (language === 'zh' ? '注册' : 'Register')}</h2>
+        <p>{authMode === 'login' ? t.signInSubtitle : (language === 'zh' ? '注册账号后即可使用全部功能' : 'Create an account to unlock all features.')}</p>
+        <form onSubmit={handleSubmit} className="authForm">
+          <input
+            className="authInput"
+            type="text"
+            placeholder={language === 'zh' ? '用户名' : 'Username'}
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            autoFocus
+          />
+          <input
+            className="authInput"
+            type="password"
+            placeholder={language === 'zh' ? '密码' : 'Password'}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          {authMode === 'register' ? (
+            <input
+              className="authInput"
+              type="password"
+              placeholder={language === 'zh' ? '确认密码' : 'Confirm Password'}
+              value={password2}
+              onChange={(e) => setPassword2(e.target.value)}
+            />
+          ) : null}
+          <button className="googleButton" type="submit" disabled={status === 'loading'}>
+            {status === 'loading' ? <LoaderCircle className="spinIcon" size={18} /> : authMode === 'login' ? <LogIn size={18} /> : <UserPlus size={18} />}
+            {authMode === 'login' ? (language === 'zh' ? '登录' : 'Sign In') : (language === 'zh' ? '注册' : 'Register')}
+          </button>
+        </form>
+        <button className="authSwitch" type="button" onClick={toggleMode}>
+          {authMode === 'login'
+            ? (language === 'zh' ? '没有账号？去注册' : "Don't have an account? Register")
+            : (language === 'zh' ? '已有账号？去登录' : 'Already have an account? Sign In')}
         </button>
         {message ? (
           <p className={cx('authMessage', status === 'error' && 'error', status === 'sent' && 'sent')}>
@@ -2938,6 +2985,7 @@ function App() {
   const [preview, setPreview] = useState(null);
   const [session, setSession] = useState(null);
   const [profile, setProfile] = useState(null);
+  const [phpSession, setPhpSession] = useState(false);
   const [favoriteRows, setFavoriteRows] = useState([]);
   const [favoriteBusyId, setFavoriteBusyId] = useState(null);
   const [favoriteMessage, setFavoriteMessage] = useState('');
@@ -2992,9 +3040,28 @@ function App() {
   }, []);
 
   useEffect(() => {
+    if (isSupabaseConfigured && supabase) return undefined;
+
+    let cancelled = false;
+    fetch('/api/me')
+      .then((response) => response.json())
+      .then((payload) => {
+        if (cancelled) return;
+        if (payload?.ok && payload.user) {
+          setPhpSession(true);
+          setSession({ phpSession: true });
+          setProfile(payload.user);
+        }
+      })
+      .catch(() => {});
+
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
     let cancelled = false;
 
-    if (!session?.access_token) {
+    if (!session?.access_token && !session?.phpSession) {
       setProfile(null);
       setFavoriteRows([]);
       return () => {
@@ -3018,10 +3085,10 @@ function App() {
     return () => {
       cancelled = true;
     };
-  }, [session?.access_token]);
+  }, [session?.access_token, session?.phpSession]);
 
   async function loadFavorites({ silent = true } = {}) {
-    if (!session?.access_token) {
+    if (!session?.access_token && !session?.phpSession) {
       setFavoriteRows([]);
       return [];
     }
@@ -3046,7 +3113,7 @@ function App() {
   useEffect(() => {
     let cancelled = false;
 
-    if (!session?.access_token) {
+    if (!session?.access_token && !session?.phpSession) {
       setFavoriteRows([]);
       return () => {
         cancelled = true;
@@ -3061,7 +3128,7 @@ function App() {
     return () => {
       cancelled = true;
     };
-  }, [session?.access_token]);
+  }, [session?.access_token, session?.phpSession]);
 
   useEffect(() => {
     if (!siteData || !styleLibrary || !window.location.hash) return;
@@ -3142,6 +3209,10 @@ function App() {
   );
 
   async function handleSignOut() {
+    if (session?.phpSession) {
+      await fetch('/api/auth.php?action=logout').catch(() => {});
+      setPhpSession(false);
+    }
     if (supabase) await supabase.auth.signOut();
     setSession(null);
     setProfile(null);
@@ -3149,6 +3220,13 @@ function App() {
     setAccountOpen(false);
     setAdminOpen(false);
     setBillingOpen(false);
+  }
+
+  function handlePhpSignIn(userData) {
+    const user = userData?.id ? userData : null;
+    setPhpSession(Boolean(user));
+    setSession(user ? { phpSession: true } : null);
+    if (user) setProfile(user);
   }
 
   function handleProfileChange(nextProfile) {
@@ -3176,7 +3254,7 @@ function App() {
 
   async function handleToggleFavorite(caseItem) {
     if (!caseItem?.id) return;
-    if (!session?.access_token) {
+    if (!session?.access_token && !session?.phpSession) {
       setAuthOpen(true);
       setTimedFavoriteMessage(t.signInToFavorite);
       return;
@@ -3385,7 +3463,7 @@ function App() {
               onOpen={(item) => setPreview({ type: 'case', item })}
               onGenerate={(item) => {
                 setPreview({ type: 'case', item });
-                if (!session?.access_token) setAuthOpen(true);
+                if (!session?.access_token && !session?.phpSession) setAuthOpen(true);
               }}
               onToggleFavorite={handleToggleFavorite}
               styleLibrary={styleLibrary}
@@ -3431,6 +3509,7 @@ function App() {
         open={authOpen}
         language={language}
         onClose={() => setAuthOpen(false)}
+        onSignIn={handlePhpSignIn}
       />
       <AccountPanel
         open={accountOpen}

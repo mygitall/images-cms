@@ -145,8 +145,8 @@ function parseCases() {
         category: categoryMap.get(id)
       });
       const image = imageMatch?.[2]
-        ? imageMatch[2].replace('../data/', '/')
-        : `/images/case${id}.jpg`;
+        ? imageMatch[2].replace('../data/', './')
+        : `./images/case${id}.jpg`;
       const tags = inferTags({ title, prompt, category });
 
       cases.push({
