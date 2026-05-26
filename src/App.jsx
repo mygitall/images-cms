@@ -51,7 +51,7 @@ function App() {
   const [billingNotice, setBillingNotice] = useState('');
   const { copiedId, copyPrompt, copyText } = useCopy();
   const repoUrl = siteData?.repository || fallbackRepoUrl;
-  const t = copy[language];
+  const t = copy[language] || copy.en;
 
   useEffect(() => {
     let cancelled = false;
@@ -63,6 +63,12 @@ function App() {
         if (!cancelled) {
           setSiteData(payload);
           setStyleLibrary(library);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setSiteData({ cases: [], categories: [], styles: [], scenes: [], totalCases: 0 });
+          setStyleLibrary({ categories: [], styles: [], scenes: [], templates: [], tagLabels: {} });
         }
       });
     return () => {
@@ -240,8 +246,8 @@ function App() {
           .toLowerCase()
           .includes(q);
       const matchCategory = category === 'All' || item.category === category;
-      const matchStyle = style === 'All' || item.styles.includes(style);
-      const matchScene = scene === 'All' || item.scenes.includes(scene);
+      const matchStyle = style === 'All' || (item.styles || []).includes(style);
+      const matchScene = scene === 'All' || (item.scenes || []).includes(scene);
       return matchQuery && matchCategory && matchStyle && matchScene;
     });
   }, [siteData, query, category, style, scene]);

@@ -86,8 +86,8 @@ function PreviewDialog({
     setReferenceImages([]);
 
     if (preview.type === 'case') {
-      const savedGeneration = getSavedGeneration(preview.item.id);
-      setEditablePrompt(preview.item.prompt || '');
+      const savedGeneration = getSavedGeneration(preview.item?.id);
+      setEditablePrompt(preview.item?.prompt || '');
       setGenerationState(
         savedGeneration
           ? {
@@ -122,7 +122,7 @@ function PreviewDialog({
   const { type, item } = preview;
   const isTemplate = type === 'template';
   const isFree = type === 'free';
-  const title = isFree ? '' : (isTemplate ? textFor(item.title, language) : item?.title || '');
+  const title = isFree ? '' : (isTemplate ? textFor(item?.title, language) : item?.title || '');
   const description = isFree ? '' : (isTemplate ? textFor(item.description, language) : compactText(item?.promptPreview));
   const image = isFree ? '' : (isTemplate ? item.cover : item?.image || '');
   const imageAlt = isFree ? '' : (isTemplate ? title : item?.imageAlt || '');

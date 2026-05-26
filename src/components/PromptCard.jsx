@@ -19,7 +19,7 @@ function PromptCard({
   styleLibrary
 }) {
   const t = i18nCopy[language];
-  const tags = [...new Set([...caseItem.styles, ...caseItem.scenes])].slice(0, 4);
+  const tags = [...new Set([...(caseItem.styles || []), ...(caseItem.scenes || [])])].slice(0, 4);
 
   return (
     <article className="caseCard">
