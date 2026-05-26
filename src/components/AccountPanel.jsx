@@ -42,7 +42,7 @@ function AccountPanel({
       favoritesRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
     });
     return () => window.cancelAnimationFrame(frame);
-  }, [open, initialSection, favoriteRows]);
+  }, [open, initialSection]);
 
   if (!open) return null;
 
@@ -85,6 +85,7 @@ function AccountPanel({
       if (payload.user) onProfileChange(payload.user);
       setStatus('success');
       setMessage(t.profileSaved);
+      setTimeout(() => setMessage((m) => m === t.profileSaved ? '' : m), 3000);
     } catch {
       setStatus('error');
       setMessage(t.profileUpdateFailed);

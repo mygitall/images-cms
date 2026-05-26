@@ -44,6 +44,13 @@ function GenerationHistory({ open, language, onClose }) {
     if (open) loadHistory();
   }, [open]);
 
+  useEffect(() => {
+    if (!lightboxImage) return;
+    function onKey(e) { if (e.key === 'Escape') setLightboxImage(null); }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [lightboxImage]);
+
   if (!open) return null;
 
   return (
@@ -71,7 +78,10 @@ function GenerationHistory({ open, language, onClose }) {
           <div className="historyState"><p>{language === 'zh' ? '暂无生图记录' : 'No generation history'}</p></div>
         ) : (
           <div className="historyGrid">
-            {items.map((item) => (
+            {items.map((item) => {
+              const d = item.createdAt ? new Date(item.createdAt) : null;
+              const dateStr = d && !isNaN(d.getTime()) ? d.toLocaleString(language === 'zh' ? 'zh-CN' : 'en-US') : '';
+              return (
               <div className="historyCard" key={item.id}>
                 <div className="historyImageWrap">
                   {item.imageUrl ? (
@@ -96,10 +106,10 @@ function GenerationHistory({ open, language, onClose }) {
                 </div>
                 <div className="historyInfo">
                   <p>{item.prompt}</p>
-                  <time>{item.createdAt ? new Date(item.createdAt).toLocaleString(language === 'zh' ? 'zh-CN' : 'en-US') : ''}</time>
+                  <time>{dateStr}</time>
                 </div>
               </div>
-            ))}
+            )})}
           </div>
         )}
       </section>

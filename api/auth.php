@@ -109,7 +109,7 @@ function buildUserResponse($user) {
         $stmt2->execute([$uid]);
         $totalGenerations = (int)$stmt2->fetchColumn();
 
-        $stmt3 = $pdo->prepare("SELECT COALESCE(SUM(ABS(amount)), 0) FROM balance_logs WHERE user_id = ? AND type = 'deduct'");
+        $stmt3 = $pdo->prepare("SELECT COALESCE(SUM(ABS(amount)), 0) FROM balance_logs WHERE user_id = ? AND type = 'generation'");
         $stmt3->execute([$uid]);
         $totalGenerationCredits = floatval($stmt3->fetchColumn());
     } catch (\Throwable $e) {}
@@ -130,6 +130,10 @@ function buildUserResponse($user) {
                 'createdAt' => $t['created_at']
             ];
         }, $stmt4->fetchAll());
+
+        $stmt5 = $pdo->prepare('SELECT COUNT(*) FROM api_logs WHERE user_id = ?');
+        $stmt5->execute([$uid]);
+        $apiCalls = (int)$stmt5->fetchColumn();
     } catch (\Throwable $e) {}
 
     return [
@@ -151,18 +155,10 @@ function buildUserResponse($user) {
             'totalGenerations' => $totalGenerations,
             'totalGenerationCredits' => $totalGenerationCredits,
             'purchasedCredits' => 0,
-            'apiCalls' => 0,
+            'apiCalls' => $apiCalls ?? 0,
             'dailyLimit' => (int)($row['daily_limit'] ?? 0),
             'totalLimit' => (int)($row['total_limit'] ?? 0)
         ],
         'recentTransactions' => $recentTransactions
     ];
-
-    // 补充 API 调用次数（images20 核心统计）
-    try {
-        $stmt5 = $pdo->prepare('SELECT COUNT(*) FROM api_logs WHERE user_id = ?');
-        $stmt5->execute([$uid]);
-        $result['usage']['apiCalls'] = (int)$stmt5->fetchColumn();
-    } catch (\Throwable $e) {}
-    return $result;
 }

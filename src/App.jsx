@@ -56,22 +56,17 @@ function App() {
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([
-      fetch('/cases.json').then((response) => response.json()),
-      fetch('/style-library.json').then((response) => response.json())
-    ])
-      .then(([payload, library]) => {
-        if (!cancelled) {
-          setSiteData(payload);
-          setStyleLibrary(library);
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setSiteData({ cases: [], categories: [], styles: [], scenes: [], totalCases: 0 });
-          setStyleLibrary({ categories: [], styles: [], scenes: [], templates: [], tagLabels: {} });
-        }
-      });
+    Promise.allSettled([
+      fetch('/cases.json').then((r) => r.json()),
+      fetch('/style-library.json').then((r) => r.json())
+    ]).then(([casesResult, libResult]) => {
+      if (!cancelled) {
+        if (casesResult.status === 'fulfilled') setSiteData(casesResult.value);
+        else setSiteData({ cases: [], categories: [], styles: [], scenes: [], totalCases: 0 });
+        if (libResult.status === 'fulfilled') setStyleLibrary(libResult.value);
+        else setStyleLibrary({ categories: [], styles: [], scenes: [], templates: [], tagLabels: {} });
+      }
+    });
     return () => {
       cancelled = true;
     };
@@ -146,7 +141,7 @@ function App() {
     return () => {
       cancelled = true;
     };
-  }, [session?.access_token, session?.phpSession]);
+  }, [session?.access_token]);
 
   async function loadFavorites({ silent = true } = {}) {
     if (!session?.access_token && !session?.phpSession) {
@@ -572,8 +567,11 @@ function App() {
               onCopy={copyPrompt}
               onOpen={(item) => setPreview({ type: 'case', item })}
               onGenerate={(item) => {
-                setPreview({ type: 'case', item });
-                if (!session?.access_token && !session?.phpSession) setAuthOpen(true);
+                if (!session?.access_token && !session?.phpSession) {
+                  setAuthOpen(true);
+                } else {
+                  setPreview({ type: 'case', item });
+                }
               }}
               onToggleFavorite={handleToggleFavorite}
               styleLibrary={styleLibrary}

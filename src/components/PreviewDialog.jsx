@@ -101,7 +101,7 @@ function PreviewDialog({
       );
     } else if (preview.type === 'template') {
       const formatted = formatTemplatePrompt(preview.item, language, styleLibrary);
-      setEditablePrompt(formatted);
+      setEditablePrompt(formatted.slice(0, 6000));
       setGenerationState({ status: 'idle', image: '', message: '', prompt: '', savedAt: '' });
     } else if (preview.type === 'free') {
       setEditablePrompt('');
@@ -157,6 +157,9 @@ function PreviewDialog({
         if (prev.length >= 4) return prev;
         return [...prev, reader.result];
       });
+    };
+    reader.onerror = () => {
+      setGenerationState({ status: 'error', image: generatedImage, message: language === 'zh' ? '文件读取失败' : 'Failed to read file' });
     };
     reader.readAsDataURL(file);
     event.target.value = '';

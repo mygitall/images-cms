@@ -133,7 +133,7 @@ foreach ($orderedProfiles as $profile) {
         curl_close($ch);
 
         // 成功则跳出
-        if ($httpCode >= 200 && $httpCode < 500 && !$curlError) break 2;
+        if ($httpCode >= 200 && $httpCode < 300 && !$curlError) break 2;
 
         // 超时则重试，其他错误停止
         if (!$curlError || $retry >= $maxRetries) break 2;
@@ -235,7 +235,7 @@ $updatedUser = [
     'usage' => [
         'totalGenerations' => (int)$freeCheck + 1,
         'totalGenerationCredits' => (function() use ($pdo, $uid) {
-            $stmt = $pdo->prepare("SELECT COALESCE(SUM(ABS(amount)),0) FROM balance_logs WHERE user_id = ? AND type = 'deduct'");
+            $stmt = $pdo->prepare("SELECT COALESCE(SUM(ABS(amount)),0) FROM balance_logs WHERE user_id = ? AND type = 'generation'");
             $stmt->execute([$uid]);
             return (float)$stmt->fetchColumn();
         })(),
