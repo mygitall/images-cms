@@ -8,7 +8,8 @@ function LanguageSwitch({ language, setLanguage }) {
   const ref = useDropdownDismiss(open, setOpen);
   const languageOptions = [
     { value: 'en', label: 'English', short: 'EN' },
-    { value: 'zh', label: '中文', short: '中文' }
+    { value: 'zh', label: '中文', short: '中' },
+    { value: 'ko', label: '한국어', short: '한' }
   ];
   const activeLanguage = languageOptions.find((option) => option.value === language) || languageOptions[0];
 
