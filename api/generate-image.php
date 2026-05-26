@@ -40,7 +40,7 @@ if ($freeCheck > 0) $freeUsed = true;
 $input = json_decode(file_get_contents('php://input'), true) ?? [];
 $prompt = trim($input['prompt'] ?? '');
 $caseId = (int)($input['caseId'] ?? 0);
-$referenceImage = trim($input['referenceImage'] ?? '');
+$referenceImages = $input['referenceImages'] ?? [];
 
 if (!$prompt || strlen($prompt) > $maxPromptLength) {
     json_out(['ok' => false, 'error' => 'INVALID_PROMPT'], 400);
@@ -93,8 +93,8 @@ $requestPayload = [
     'size'   => '1024x1024'
 ];
 
-if ($referenceImage) {
-    $requestPayload['image'] = $referenceImage;
+if (!empty($referenceImages)) {
+    $requestPayload['image'] = $referenceImages;
 }
 
 $requestBody = json_encode($requestPayload);

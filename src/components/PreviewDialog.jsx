@@ -40,7 +40,7 @@ function PreviewDialog({
   const genTimerRef = useRef(null);
   const [availModels, setAvailModels] = useState([]);
   const [referenceMode, setReferenceMode] = useState(false);
-  const [referenceImage, setReferenceImage] = useState('');
+  const [referenceImages, setReferenceImages] = useState([]);
   const fileInputRef = useRef(null);
   useBodyScrollLock(Boolean(preview));
 
@@ -83,7 +83,7 @@ function PreviewDialog({
     if (!preview) return;
 
     setReferenceMode(false);
-    setReferenceImage('');
+    setReferenceImages([]);
 
     if (preview.type === 'case') {
       const savedGeneration = getSavedGeneration(preview.item.id);
@@ -144,20 +144,25 @@ function PreviewDialog({
     const file = event.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = () => setReferenceImage(reader.result);
+    reader.onload = () => {
+      setReferenceImages((prev) => {
+        if (prev.length >= 4) return prev;
+        return [...prev, reader.result];
+      });
+    };
     reader.readAsDataURL(file);
+    event.target.value = '';
   }
 
   function toggleReferenceMode() {
     if (!referenceMode) {
-      // 默认使用案例原图作为参考图
-      if (!isTemplate && image && !referenceImage) {
-        setReferenceImage(image);
+      if (!isTemplate && image && referenceImages.length === 0) {
+        setReferenceImages([image]);
       }
       setReferenceMode(true);
     } else {
       setReferenceMode(false);
-      setReferenceImage('');
+      setReferenceImages([]);
     }
   }
 
@@ -191,7 +196,7 @@ function PreviewDialog({
         body: JSON.stringify({
           caseId: isTemplate ? 0 : item.id,
           prompt,
-          referenceImage: referenceMode ? referenceImage || '' : ''
+          referenceImages: referenceMode ? referenceImages : []
         })
       });
       const payload = await response.json().catch(() => ({}));
@@ -346,8 +351,11 @@ function PreviewDialog({
                 >
                   <ImagePlus size={15} />
                   {language === 'zh' ? '参考图' : 'Reference'}
+                  {referenceMode && referenceImages.length > 0 ? (
+                    <span className="referenceCount">{referenceImages.length}/4</span>
+                  ) : null}
                 </button>
-                {referenceMode ? (
+                {referenceMode && referenceImages.length < 4 ? (
                   <button type="button" className="referenceUploadBtn" onClick={() => fileInputRef.current?.click()}>
                     {language === 'zh' ? '上传' : 'Upload'}
                   </button>
@@ -360,12 +368,16 @@ function PreviewDialog({
                   onChange={handleFileChange}
                 />
               </div>
-              {referenceMode && referenceImage ? (
-                <div className="referencePreview">
-                  <img src={referenceImage} alt="" />
-                  <button type="button" className="referenceRemove" onClick={() => setReferenceImage('')}>
-                    <X size={12} />
-                  </button>
+              {referenceMode && referenceImages.length > 0 ? (
+                <div className="referencePreviews">
+                  {referenceImages.map((ref, idx) => (
+                    <div className="referencePreview" key={idx}>
+                      <img src={ref} alt="" />
+                      <button type="button" className="referenceRemove" onClick={() => setReferenceImages((prev) => prev.filter((_, i) => i !== idx))}>
+                        <X size={12} />
+                      </button>
+                    </div>
+                  ))}
                 </div>
               ) : null}
               <div className={cx('generationQuota', (!isSignedIn || isOutOfCredits) && 'used')}>
