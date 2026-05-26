@@ -80,7 +80,7 @@ function GenerationHistory({ open, language, onClose }) {
           <div className="historyGrid">
             {items.map((item) => {
               const d = item.createdAt ? new Date(item.createdAt) : null;
-              const dateStr = d && !isNaN(d.getTime()) ? d.toLocaleString(language === 'zh' ? 'zh-CN' : 'en-US') : '';
+              const dateStr = d && !isNaN(d.getTime()) ? d.toLocaleString(language === 'zh' ? 'zh-CN' : language === 'ko' ? 'ko-KR' : 'en-US') : '';
               return (
               <div className="historyCard" key={item.id}>
                 <div className="historyImageWrap">

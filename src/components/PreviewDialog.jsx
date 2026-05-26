@@ -121,7 +121,7 @@ function PreviewDialog({
   const promptText = editablePrompt;
   const copyId = isFree ? 'free' : (isTemplate ? `template-${item.id}` : `case-${item.id}`);
   const isCopied = copiedId === copyId;
-  const primaryLink = isFree ? '' : (isTemplate ? `${repoDocsUrl}#${item.anchor}` : item?.githubUrl);
+  const primaryLink = isFree ? '' : (isTemplate ? `${repoDocsUrl}#${item.anchor}` : item?.githubUrl || '#');
   const primaryLabel = isTemplate ? t.openTemplate : t.openOnGithub;
   const meta = isFree ? [] : (isTemplate
     ? [t.templateKind, localizeLabel(item.category, language, styleLibrary)]
@@ -148,6 +148,7 @@ function PreviewDialog({
     const file = event.target.files?.[0];
     if (!file) return;
     if (file.size > 10 * 1024 * 1024) {
+      event.target.value = '';
       setGenerationState({ status: 'error', image: generatedImage, message: language === 'zh' ? '图片大小不能超过 10MB' : 'Image must be under 10MB' });
       return;
     }
@@ -330,10 +331,6 @@ function PreviewDialog({
                 {isCopied ? <Check size={17} /> : <Copy size={17} />}
                 {isCopied ? t.copied : isTemplate ? t.copyTemplatePrompt : t.copyPrompt}
               </button>
-              <button type="button" onClick={handleGenerate} disabled={generationLocked}>
-                {isGenerating ? <LoaderCircle className="spinIcon" size={17} /> : <ImageIcon size={17} />}
-                {isGenerating ? t.generating : isOutOfCredits ? t.buyCredits : isSignedIn ? t.generateImage : t.signInToGenerate}
-              </button>
               <a href={primaryLink} target="_blank" rel="noreferrer">
                 {primaryLabel}
                 <ArrowUpRight size={17} />
@@ -418,7 +415,7 @@ function PreviewDialog({
               {isGenerating ? (
                 <div className="generationTimer">
                   <LoaderCircle className="spinIcon" size={16} />
-                  {language === 'zh' ? `生成中... ${genElapsed}s` : `Generating... ${genElapsed}s`}
+                  {language === 'zh' ? `生成中... ${genElapsed}s` : language === 'ko' ? `생성 중... ${genElapsed}초` : `Generating... ${genElapsed}s`}
                 </div>
               ) : null}
               <button type="button" onClick={handleGenerate} disabled={generationLocked}>

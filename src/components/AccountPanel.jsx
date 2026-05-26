@@ -190,7 +190,7 @@ function AccountPanel({
                   <strong>{caseItem.title}</strong>
                   <em>
                     {createdAt
-                      ? new Date(createdAt).toLocaleDateString(language === 'zh' ? 'zh-CN' : 'en-US')
+                      ? new Date(createdAt).toLocaleDateString(language === 'zh' ? 'zh-CN' : language === 'ko' ? 'ko-KR' : 'en-US')
                       : localizeLabel(caseItem.category, language, null)}
                   </em>
                 </button>

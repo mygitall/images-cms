@@ -31,11 +31,13 @@ class ErrorBoundary extends React.Component {
           }}>
             <AlertTriangle size={40} style={{ color: '#ff6b6b' }} />
             <h1 style={{ margin: 0, fontSize: '20px', fontWeight: 800 }}>
-              {this.props.language === 'zh' ? '页面出现了错误' : 'Something went wrong'}
+              {this.props.language === 'zh' ? '页面出现了错误' : this.props.language === 'ko' ? '페이지에 오류가 발생했습니다' : 'Something went wrong'}
             </h1>
             <p style={{ margin: 0, color: '#8899aa', maxWidth: '420px', lineHeight: 1.6 }}>
               {this.props.language === 'zh'
                 ? '请刷新页面重试。如果问题持续存在，请联系管理员。'
+                : this.props.language === 'ko'
+                ? '페이지를 새로고침하여 다시 시도해 주세요. 문제가 계속되면 관리자에게 문의하세요.'
                 : 'Please refresh the page to try again. If the problem persists, contact the administrator.'}
             </p>
             <button
@@ -55,7 +57,7 @@ class ErrorBoundary extends React.Component {
               }}
             >
               <RefreshCw size={16} />
-              {this.props.language === 'zh' ? '刷新页面' : 'Refresh page'}
+              {this.props.language === 'zh' ? '刷新页面' : this.props.language === 'ko' ? '새로고침' : 'Refresh page'}
             </button>
           </div>
         </main>

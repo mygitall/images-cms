@@ -515,7 +515,7 @@ function AdminPanel({ open, language, session, casesById, onClose, onOpenCase })
                         </button>
                       ) : '-'}
                     </td>
-                    <td>{user.createdAt ? new Date(user.createdAt).toLocaleDateString(language === 'zh' ? 'zh-CN' : 'en-US') : '-'}</td>
+                    <td>{user.createdAt ? new Date(user.createdAt).toLocaleDateString(language === 'zh' ? 'zh-CN' : language === 'ko' ? 'ko-KR' : 'en-US') : '-'}</td>
                     <td>
                       <button
                         className="tableAction"

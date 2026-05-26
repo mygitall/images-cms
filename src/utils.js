@@ -49,7 +49,7 @@ function formatShortDate(value, language) {
   const normalized = /^\d{8}$/.test(String(value))
     ? `${String(value).slice(0, 4)}-${String(value).slice(4, 6)}-${String(value).slice(6, 8)}T00:00:00Z`
     : value;
-  return new Date(normalized).toLocaleDateString(language === 'zh' ? 'zh-CN' : 'en-US', {
+  return new Date(normalized).toLocaleDateString(language === 'zh' ? 'zh-CN' : language === 'ko' ? 'ko-KR' : 'en-US', {
     month: 'short',
     day: 'numeric'
   });
@@ -57,7 +57,7 @@ function formatShortDate(value, language) {
 
 function formatRangeDate(value, language) {
   if (!value) return '-';
-  return new Date(`${value}T00:00:00`).toLocaleDateString(language === 'zh' ? 'zh-CN' : 'en-US', {
+  return new Date(`${value}T00:00:00`).toLocaleDateString(language === 'zh' ? 'zh-CN' : language === 'ko' ? 'ko-KR' : 'en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric'
@@ -198,8 +198,8 @@ function generationErrorMessage(error, language) {
   if (error === 'CREDITS_REQUIRED') return t.creditsRequired;
   if (error === 'AUTH_REQUIRED') return t.authRequired;
   if (error === 'FORBIDDEN') return t.adminOnly;
-  if (error === 'API_KEY_INVALID') return language === 'zh' ? 'API Key 无效，请在后台更新' : 'API Key invalid, update in Admin panel';
-  if (error === 'UPSTREAM_BUSY') return language === 'zh' ? 'API 服务超时，请稍后重试' : 'API timed out, please try again later';
+  if (error === 'API_KEY_INVALID') return language === 'zh' ? 'API Key 无效，请在后台更新' : language === 'ko' ? 'API 키가 유효하지 않습니다. 관리자 패널에서 업데이트하세요.' : 'API Key invalid, update in Admin panel';
+  if (error === 'UPSTREAM_BUSY') return language === 'zh' ? 'API 服务超时，请稍后重试' : language === 'ko' ? 'API 서비스 시간 초과. 나중에 다시 시도해 주세요.' : 'API timed out, please try again later';
   if (error === 'SERVER_NOT_CONFIGURED') return t.serverUnavailable;
   if (error === 'BILLING_NOT_CONFIGURED') return t.checkoutUnavailable;
   if (error === 'CHECKOUT_FAILED' || error === 'BILLING_PORTAL_FAILED') return t.checkoutFailed;
@@ -234,18 +234,18 @@ function formatMembershipStatus(membership, language) {
   if (!membership?.isActive) return t.noPlan;
   const status = membership.status === 'trialing' ? 'trialing' : 'active';
   if (!membership.currentPeriodEnd) return status;
-  const date = new Date(membership.currentPeriodEnd).toLocaleDateString(language === 'zh' ? 'zh-CN' : 'en-US');
+  const date = new Date(membership.currentPeriodEnd).toLocaleDateString(language === 'zh' ? 'zh-CN' : language === 'ko' ? 'ko-KR' : 'en-US');
   return `${status} · ${t.activeUntil} ${date}`;
 }
 
 function transactionLabel(transaction, language) {
   const typeMap = {
-    grant: language === 'zh' ? '赠送' : 'Grant',
-    purchase: language === 'zh' ? '购买' : 'Purchase',
-    membership_grant: language === 'zh' ? '会员发放' : 'Membership grant',
-    generation: language === 'zh' ? '生图消耗' : 'Generation',
-    refund: language === 'zh' ? '失败返还' : 'Refund',
-    adjustment: language === 'zh' ? '管理员调整' : 'Admin adjustment'
+    grant: language === 'zh' ? '赠送' : language === 'ko' ? '증정' : 'Grant',
+    purchase: language === 'zh' ? '购买' : language === 'ko' ? '구매' : 'Purchase',
+    membership_grant: language === 'zh' ? '会员发放' : language === 'ko' ? '멤버십 증정' : 'Membership grant',
+    generation: language === 'zh' ? '生图消耗' : language === 'ko' ? '생성 사용' : 'Generation',
+    refund: language === 'zh' ? '失败返还' : language === 'ko' ? '환불' : 'Refund',
+    adjustment: language === 'zh' ? '管理员调整' : language === 'ko' ? '관리자 조정' : 'Admin adjustment'
   };
   return typeMap[transaction.type] || transaction.type || '-';
 }

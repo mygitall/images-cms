@@ -32,7 +32,7 @@ function TransactionItem({ transaction, language, casesById, onOpenCase }) {
       </strong>
       <em>
         {transaction.createdAt
-          ? new Date(transaction.createdAt).toLocaleString(language === 'zh' ? 'zh-CN' : 'en-US')
+          ? new Date(transaction.createdAt).toLocaleString(language === 'zh' ? 'zh-CN' : language === 'ko' ? 'ko-KR' : 'en-US')
           : '-'}
       </em>
     </div>

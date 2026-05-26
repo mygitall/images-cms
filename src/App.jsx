@@ -432,7 +432,7 @@ function App() {
 
   return (
     <main>
-      <a className="skipLink" href="#gallery">{language === 'zh' ? '跳到主内容' : 'Skip to content'}</a>
+      <a className="skipLink" href="#gallery">{language === 'zh' ? '跳到主内容' : language === 'ko' ? '콘텐츠로 건너뛰기' : 'Skip to content'}</a>
       <header className="topbar">
         <a className="brand" href="#">
           <WandSparkles size={21} />
@@ -549,7 +549,7 @@ function App() {
         </div>
 
         <div className="resultBar">
-          <span>{language === 'zh' ? `${filteredCases.length} ${t.matching}` : `${filteredCases.length} ${t.matching}`}</span>
+          <span>{language === 'ko' ? `${t.matching} ${filteredCases.length}건` : `${filteredCases.length} ${t.matching}`}</span>
           <a href={repoUrl} target="_blank" rel="noreferrer">
             {t.openGithub}
             <ArrowUpRight size={16} />
@@ -582,12 +582,14 @@ function App() {
 
         {hasMore && (
           <div className="loadMoreBar">
-            <span>{language === 'zh'
+            <span>{language === 'ko'
+              ? `${visibleCases.length} / ${filteredCases.length}개 표시`
+              : language === 'zh'
               ? `已显示 ${visibleCases.length} / ${filteredCases.length} 个案例`
               : `Showing ${visibleCases.length} of ${filteredCases.length} cases`}
             </span>
             <button type="button" onClick={loadMore}>
-              {language === 'zh' ? '加载更多' : 'Load more'}
+              {language === 'zh' ? '加载更多' : language === 'ko' ? '더 보기' : 'Load more'}
             </button>
           </div>
         )}
