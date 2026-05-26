@@ -153,6 +153,7 @@ button {
 }
 
 .communityPopover {
+  display: none;
   position: absolute;
   top: calc(100% + 12px);
   left: 50%;
