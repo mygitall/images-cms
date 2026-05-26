@@ -260,12 +260,14 @@ function PreviewDialog({
         <button className="previewClose" type="button" onClick={onClose} aria-label={t.closePreview}>
           <X size={20} />
         </button>
-        <div className={cx('previewMedia', generatedImage && 'hasComparison', isFree && !generatedImage && 'previewMediaEmpty')}>
+        <div className={cx('previewMedia', generatedImage && !isFree && 'hasComparison', isFree && !generatedImage && 'previewMediaEmpty')}>
           {isFree && !generatedImage ? (
             <div className="previewMediaPlaceholder">
               <ImageIcon size={48} />
               <span>{language === 'zh' ? '自由生图' : 'Free Creation'}</span>
             </div>
+          ) : isFree && generatedImage ? (
+            <img src={generatedImage} alt={t.generatedResult} />
           ) : generatedImage ? (
             <div className="comparisonGrid">
               <figure className="comparisonFigure">
