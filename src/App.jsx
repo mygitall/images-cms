@@ -29,7 +29,7 @@ function App() {
   useGaPageViews();
   const [siteData, setSiteData] = useState(null);
   const [styleLibrary, setStyleLibrary] = useState(null);
-  const [language, setLanguage] = useState(() => localStorage.getItem('language') || 'en');
+  const [language, setLanguage] = useState(() => localStorage.getItem('language') || 'zh');
   const [query, setQuery] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [category, setCategory] = useState('All');
