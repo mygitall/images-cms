@@ -198,10 +198,16 @@ if (!empty($payload['data'][0]['b64_json'])) {
 } elseif (!empty($payload['data'][0]['url'])) {
     $imageUrl = $payload['data'][0]['url'];
 } elseif (!empty($payload['choices'][0]['message']['content'])) {
-    foreach ($payload['choices'][0]['message']['content'] as $part) {
-        if (($part['type'] ?? '') === 'image_url' && !empty($part['image_url']['url'])) {
-            $imageUrl = $part['image_url']['url'];
-            break;
+    $content = $payload['choices'][0]['message']['content'];
+    // chat API 可能返回：1) 纯字符串 data URL  2) 对象数组 [{type:'image_url',...}]
+    if (is_string($content) && strpos($content, 'data:image/') === 0) {
+        $b64 = preg_replace('#^data:image/\w+;base64,#', '', $content);
+    } elseif (is_array($content)) {
+        foreach ($content as $part) {
+            if (($part['type'] ?? '') === 'image_url' && !empty($part['image_url']['url'])) {
+                $imageUrl = $part['image_url']['url'];
+                break;
+            }
         }
     }
 }
