@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowUpRight, Search, Sparkles, WandSparkles
 } from 'lucide-react';
@@ -46,6 +46,7 @@ function App() {
   const [accountInitialSection, setAccountInitialSection] = useState('overview');
   const [adminOpen, setAdminOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(72);
   const [billingOpen, setBillingOpen] = useState(false);
   const [billingNotice, setBillingNotice] = useState('');
   const { copiedId, copyPrompt, copyText } = useCopy();
@@ -184,6 +185,10 @@ function App() {
   }, [session?.access_token, session?.phpSession]);
 
   useEffect(() => {
+    setVisibleCount(72);
+  }, [query, category, style, scene]);
+
+  useEffect(() => {
     if (!siteData || !styleLibrary || !window.location.hash) return;
     const target = document.getElementById(window.location.hash.slice(1));
     if (!target) return;
@@ -254,7 +259,22 @@ function App() {
     [siteData, styleLibrary]
   );
 
-  const visibleCases = filteredCases.slice(0, 72);
+  const visibleCases = filteredCases.slice(0, visibleCount);
+  const hasMore = filteredCases.length > visibleCases.length;
+  const loadMore = useCallback(() => setVisibleCount((n) => n + 72), []);
+  const sentinelRef = useRef(null);
+
+  useEffect(() => {
+    if (!hasMore) return;
+    const el = sentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) loadMore(); },
+      { rootMargin: '200px' }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [hasMore, loadMore]);
   const casesById = useMemo(() => new Map((siteData?.cases || []).map((caseItem) => [caseItem.id, caseItem])), [siteData]);
   const favoriteCaseIds = useMemo(
     () => new Set(normalizeFavoriteRows(favoriteRows).map((favorite) => favorite.caseId)),
@@ -537,11 +557,18 @@ function App() {
           ))}
         </div>
 
-        {filteredCases.length > visibleCases.length && (
-          <p className="limitNote">
-            {t.limit(visibleCases.length)}
-          </p>
+        {hasMore && (
+          <div className="loadMoreBar">
+            <span>{language === 'zh'
+              ? `已显示 ${visibleCases.length} / ${filteredCases.length} 个案例`
+              : `Showing ${visibleCases.length} of ${filteredCases.length} cases`}
+            </span>
+            <button type="button" onClick={loadMore}>
+              {language === 'zh' ? '加载更多' : 'Load more'}
+            </button>
+          </div>
         )}
+        <div ref={sentinelRef} className="loadMoreSentinel" />
       </section>
 
       <TemplateSection

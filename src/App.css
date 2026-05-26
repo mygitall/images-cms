@@ -3360,6 +3360,45 @@ button {
   text-align: center;
 }
 
+.loadMoreBar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin: 32px 0 0;
+  padding: 16px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.loadMoreBar span {
+  color: #8d9bb0;
+  font-size: 13px;
+}
+
+.loadMoreBar button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 20px;
+  border: 1px solid rgba(103, 232, 249, 0.4);
+  border-radius: 8px;
+  background: rgba(103, 232, 249, 0.1);
+  color: #9eeeff;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.loadMoreBar button:hover {
+  background: rgba(103, 232, 249, 0.18);
+  border-color: rgba(103, 232, 249, 0.7);
+}
+
+.loadMoreSentinel {
+  height: 1px;
+}
+
 @keyframes floatGlow {
   0%,
   100% {
