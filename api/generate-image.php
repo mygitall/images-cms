@@ -94,10 +94,9 @@ if (!empty($referenceImages)) {
     }
 
     $requestPayload = [
-        'model' => 'gpt-image-2',
+        'model' => 'gemini-3-pro-image-preview',
         'messages' => [['role' => 'user', 'content' => $content]],
-        'n' => 1,
-        'size' => '1024x1024'
+        'stream' => false
     ];
 
     $useChatEndpoint = true;
@@ -190,7 +189,7 @@ if (!is_array($payload)) {
     json_out(['ok' => false, 'error' => 'GENERATION_FAILED', 'message' => "API returned non-JSON response (HTTP {$httpCode})"], 502);
 }
 
-// 解析响应：兼容 images API (data[].b64_json) 和 chat API (choices[].message.content)
+// 解析响应：兼容 images API / chat API / Gemini 格式
 $b64 = '';
 $imageUrl = '';
 if (!empty($payload['data'][0]['b64_json'])) {
@@ -199,7 +198,6 @@ if (!empty($payload['data'][0]['b64_json'])) {
     $imageUrl = $payload['data'][0]['url'];
 } elseif (!empty($payload['choices'][0]['message']['content'])) {
     $content = $payload['choices'][0]['message']['content'];
-    // chat API 可能返回：1) 纯字符串 data URL  2) 对象数组 [{type:'image_url',...}]
     if (is_string($content) && strpos($content, 'data:image/') === 0) {
         $b64 = preg_replace('#^data:image/\w+;base64,#', '', $content);
     } elseif (is_array($content)) {
@@ -208,6 +206,15 @@ if (!empty($payload['data'][0]['b64_json'])) {
                 $imageUrl = $part['image_url']['url'];
                 break;
             }
+        }
+    }
+} elseif (!empty($payload['candidates'][0]['content']['parts'])) {
+    // Gemini 原生格式
+    foreach ($payload['candidates'][0]['content']['parts'] as $part) {
+        $inline = $part['inlineData'] ?? $part['inline_data'] ?? [];
+        if (!empty($inline['data'])) {
+            $b64 = $inline['data'];
+            break;
         }
     }
 }
