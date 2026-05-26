@@ -3,7 +3,7 @@ import { ArrowUpRight, Github, Sparkles } from 'lucide-react';
 import { copy } from '../i18n';
 import './Hero.css';
 
-const Hero = React.memo(function Hero({ latestCases, language, repoUrl, totalCases, categoryCount, onOpenCase }) {
+const Hero = React.memo(function Hero({ latestCases, language, repoUrl, totalCases, categoryCount, templateCount, onOpenCase }) {
   const t = copy[language];
 
   return (
@@ -31,7 +31,7 @@ const Hero = React.memo(function Hero({ latestCases, language, repoUrl, totalCas
         <div className="metrics">
           <span><strong>{totalCases}</strong> {t.cases}</span>
           <span><strong>{categoryCount}</strong> {t.categories}</span>
-          <span><strong>20+</strong> {t.templates}</span>
+          <span><strong>{templateCount || 20}+</strong> {t.templates}</span>
         </div>
       </div>
       <div className="heroDeck" aria-label="Latest GPT-Image2 cases">

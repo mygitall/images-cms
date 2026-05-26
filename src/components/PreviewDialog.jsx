@@ -56,7 +56,7 @@ function PreviewDialog({
 
   useEffect(() => {
     if (!preview) return;
-    if (preview.type !== 'case') {
+    if (preview.type !== 'case' && preview.type !== 'free') {
       setAvailModels([]);
       return;
     }
@@ -64,7 +64,7 @@ function PreviewDialog({
       .then((r) => r.json())
       .then((p) => { if (p?.ok) setAvailModels(p.models || []); })
       .catch(() => {});
-  }, [preview?.item?.id]);
+  }, [preview?.type, preview?.item?.id]);
 
   useEffect(() => {
     if (!preview) return undefined;
@@ -108,14 +108,6 @@ function PreviewDialog({
       setGenerationState({ status: 'idle', image: '', message: '', prompt: '', savedAt: '' });
     }
   }, [preview]);
-
-  useEffect(() => {
-    if (!preview || preview.type !== 'free') return;
-    fetch('/api/models')
-      .then((r) => r.json())
-      .then((p) => { if (p?.ok) setAvailModels(p.models || []); })
-      .catch(() => {});
-  }, [preview?.type]);
 
   if (!preview) return null;
 

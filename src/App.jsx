@@ -318,16 +318,22 @@ function App() {
     if (nextProfile) setProfile(nextProfile);
   }
 
+  const filterChangedRef = useRef(false);
+
   function handleFilterChange(setter, value) {
+    filterChangedRef.current = true;
     setter(value);
-    setTimeout(() => {
-      const el = document.querySelector('.caseGrid') || document.getElementById('gallery');
-      if (el) {
-        const top = el.getBoundingClientRect().top + window.pageYOffset - 84;
-        window.scrollTo({ top, behavior: 'smooth' });
-      }
-    }, 100);
   }
+
+  useEffect(() => {
+    if (!filterChangedRef.current) return;
+    filterChangedRef.current = false;
+    const el = document.querySelector('.caseGrid') || document.getElementById('gallery');
+    if (el) {
+      const top = el.getBoundingClientRect().top + window.pageYOffset - 84;
+      window.scrollTo({ top, behavior: 'smooth' });
+    }
+  }, [visibleCount]);
 
   function handleOpenCaseFromAccount(caseItem) {
     setAccountOpen(false);
@@ -472,6 +478,7 @@ function App() {
           repoUrl={repoUrl}
           totalCases={siteData.totalCases}
           categoryCount={siteData.categories.length}
+          templateCount={(styleLibrary?.templates || []).length}
           onOpenCase={(item) => setPreview({ type: 'case', item })}
         />
       ) : null}
