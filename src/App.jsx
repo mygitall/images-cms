@@ -29,7 +29,7 @@ function App() {
   useGaPageViews();
   const [siteData, setSiteData] = useState(null);
   const [styleLibrary, setStyleLibrary] = useState(null);
-  const [language, setLanguage] = useState(() => localStorage.getItem('language') || 'zh');
+  const [language, setLanguage] = useState(() => localStorage.getItem('lang') || 'zh');
   const [query, setQuery] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [category, setCategory] = useState('All');
@@ -73,8 +73,8 @@ function App() {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('language', language);
-    document.documentElement.lang = language === 'zh' ? 'zh-CN' : 'en';
+    localStorage.setItem('lang', language);
+    document.documentElement.lang = language === 'zh' ? 'zh-CN' : language === 'ko' ? 'ko' : 'en';
   }, [language]);
 
   useEffect(() => {

@@ -4,7 +4,7 @@ import App from './App';
 import ErrorBoundary from './components/ErrorBoundary';
 import './App.css';
 
-const lang = localStorage.getItem('language') || 'zh';
+const lang = localStorage.getItem('lang') || 'zh';
 
 createRoot(document.getElementById('root')).render(
   <ErrorBoundary language={lang}>
