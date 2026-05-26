@@ -242,7 +242,7 @@ function PreviewDialog({
     } catch (error) {
       setGenerationState({
         status: 'error',
-        image: '',
+        image: generatedImage,
         message: generationErrorMessage(error.message, language)
       });
     }

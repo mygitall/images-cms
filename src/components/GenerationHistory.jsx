@@ -24,6 +24,7 @@ function GenerationHistory({ open, language, onClose }) {
   }
 
   async function handleDelete(item) {
+    if (!window.confirm(language === 'zh' ? '确定删除这张生图记录？' : 'Delete this generated image?')) return;
     setDeleteBusy(item.id);
     try {
       const res = await fetch('/api/generation-delete', {
@@ -60,7 +61,12 @@ function GenerationHistory({ open, language, onClose }) {
         {status === 'loading' ? (
           <div className="historyState"><LoaderCircle className="spinIcon" size={22} /><span>{t.loading}</span></div>
         ) : status === 'error' ? (
-          <div className="historyState"><p>{language === 'zh' ? '加载失败' : 'Load failed'}</p></div>
+          <div className="historyState">
+            <p>{language === 'zh' ? '加载失败' : 'Load failed'}</p>
+            <button type="button" onClick={loadHistory}>
+              {language === 'zh' ? '重试' : 'Retry'}
+            </button>
+          </div>
         ) : items.length === 0 ? (
           <div className="historyState"><p>{language === 'zh' ? '暂无生图记录' : 'No generation history'}</p></div>
         ) : (

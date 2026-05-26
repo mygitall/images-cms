@@ -6,7 +6,7 @@ import { copy as i18nCopy } from '../i18n';
 import { cx, localizeLabel } from '../utils';
 import './PromptCard.css';
 
-function PromptCard({
+const PromptCard = React.memo(function PromptCard({
   caseItem,
   copied,
   favorited,
@@ -80,6 +80,6 @@ function PromptCard({
       </div>
     </article>
   );
-}
+});
 
 export default PromptCard;

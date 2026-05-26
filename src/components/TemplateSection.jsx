@@ -4,7 +4,7 @@ import { copy } from '../i18n';
 import { textFor, localizeLabel, localizeTemplateTag, fallbackRepoUrl } from '../utils';
 import './TemplateSection.css';
 
-function TemplateSection({ language, styleLibrary, onOpenTemplate }) {
+const TemplateSection = React.memo(function TemplateSection({ language, styleLibrary, onOpenTemplate }) {
   const t = copy[language];
   const repoDocsUrl = `${styleLibrary.repository || fallbackRepoUrl}/blob/main/${styleLibrary.templateDocument}`;
   const templates = styleLibrary.templates || [];
@@ -71,6 +71,6 @@ function TemplateSection({ language, styleLibrary, onOpenTemplate }) {
       </div>
     </section>
   );
-}
+});
 
 export default TemplateSection;

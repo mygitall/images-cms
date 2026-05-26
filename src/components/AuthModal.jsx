@@ -29,9 +29,9 @@ function AuthModal({ open, language, onClose, onSignIn }) {
   async function handleSubmit(event) {
     event.preventDefault();
     const trimmedUser = username.trim();
-    if (trimmedUser.length < 2) { setMessage('用户名至少 2 位'); setStatus('error'); return; }
-    if (password.length < 4) { setMessage('密码至少 4 位'); setStatus('error'); return; }
-    if (authMode === 'register' && password !== password2) { setMessage('两次密码不一致'); setStatus('error'); return; }
+    if (trimmedUser.length < 2) { setMessage(t.authUsernameMin); setStatus('error'); return; }
+    if (password.length < 4) { setMessage(t.authPasswordMin); setStatus('error'); return; }
+    if (authMode === 'register' && password !== password2) { setMessage(t.authPasswordMismatch); setStatus('error'); return; }
 
     setStatus('loading');
     setMessage('');

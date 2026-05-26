@@ -5,7 +5,7 @@ import { copyToClipboard, fallbackRepoUrl } from '../utils';
 import skillExampleImage from '../../agents/skills/gpt-image-2-style-library/assets/city-life-system-map.png';
 import './SkillSection.css';
 
-function SkillSection({ language, repoUrl }) {
+const SkillSection = React.memo(function SkillSection({ language, repoUrl }) {
   const t = copy[language];
   const [commandCopied, setCommandCopied] = useState(false);
   const installCommand =
@@ -76,6 +76,6 @@ function SkillSection({ language, repoUrl }) {
       </div>
     </section>
   );
-}
+});
 
 export default SkillSection;

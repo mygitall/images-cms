@@ -3,7 +3,7 @@ import { ArrowUpRight, Github, Sparkles } from 'lucide-react';
 import { copy } from '../i18n';
 import './Hero.css';
 
-function Hero({ latestCases, language, repoUrl, totalCases, categoryCount, onOpenCase }) {
+const Hero = React.memo(function Hero({ latestCases, language, repoUrl, totalCases, categoryCount, onOpenCase }) {
   const t = copy[language];
 
   return (
@@ -50,6 +50,6 @@ function Hero({ latestCases, language, repoUrl, totalCases, categoryCount, onOpe
       </div>
     </section>
   );
-}
+});
 
 export default Hero;

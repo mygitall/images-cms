@@ -31,6 +31,7 @@ function App() {
   const [styleLibrary, setStyleLibrary] = useState(null);
   const [language, setLanguage] = useState(() => localStorage.getItem('language') || 'en');
   const [query, setQuery] = useState('');
+  const [searchInput, setSearchInput] = useState('');
   const [category, setCategory] = useState('All');
   const [style, setStyle] = useState('All');
   const [scene, setScene] = useState('All');
@@ -193,6 +194,11 @@ function App() {
   useEffect(() => {
     setVisibleCount(72);
   }, [query, category, style, scene]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setQuery(searchInput), 200);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
 
   useEffect(() => {
     if (!siteData || !styleLibrary || !window.location.hash) return;
@@ -491,8 +497,8 @@ function App() {
           <div className="searchBox">
             <Search size={18} />
             <input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
+              value={searchInput}
+              onChange={(event) => setSearchInput(event.target.value)}
               placeholder={t.search}
             />
           </div>
