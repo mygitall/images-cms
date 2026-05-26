@@ -106,7 +106,7 @@ function UserMenu({ language, session, profile, onSignIn, onSignOut, onAdmin, on
             }}
           >
             <ImageIcon size={17} />
-            {language === 'zh' ? '生图历史' : 'History'}
+            {t.history}
           </button>
           <button
             className="dropdownAction"

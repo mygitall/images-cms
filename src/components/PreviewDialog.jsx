@@ -252,7 +252,7 @@ function PreviewDialog({
         if (event.target === event.currentTarget) onClose();
       }}
     >
-      <section className="previewDialog" role="dialog" aria-modal="true" aria-label={isFree ? (language === 'zh' ? '自由生图' : 'Free Creation') : undefined} aria-labelledby={isFree ? undefined : 'preview-title'}>
+      <section className="previewDialog" role="dialog" aria-modal="true" aria-label={isFree ? (t.freeCreation) : undefined} aria-labelledby={isFree ? undefined : 'preview-title'}>
         <button className="previewClose" type="button" onClick={onClose} aria-label={t.closePreview}>
           <X size={20} />
         </button>
@@ -260,7 +260,7 @@ function PreviewDialog({
           {isFree && !generatedImage ? (
             <div className="previewMediaPlaceholder">
               <ImageIcon size={48} />
-              <span>{language === 'zh' ? '自由生图' : 'Free Creation'}</span>
+              <span>{t.freeCreation}</span>
             </div>
           ) : isFree && generatedImage ? (
             <img src={generatedImage} alt={t.generatedResult} />
@@ -345,7 +345,7 @@ function PreviewDialog({
           ) : null}
           <div className="previewSection">
             <div className="sectionTitleRow">
-              <h3>{isFree ? (language === 'zh' ? '输入提示词' : 'Enter Prompt') : (isTemplate ? t.templatePrompt : t.editablePrompt)}</h3>
+              <h3>{isFree ? (t.enterPrompt) : (isTemplate ? t.templatePrompt : t.editablePrompt)}</h3>
               {!isFree ? (
               <button type="button" onClick={() => {
                 if (isTemplate) {
