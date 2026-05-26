@@ -93,21 +93,23 @@ $requestPayload = [
     'size'   => '1024x1024'
 ];
 
-$useEditsEndpoint = false;
 if (!empty($referenceImages)) {
-    // 参考图模式：用 edits 端点 + 纯 base64
-    $useEditsEndpoint = true;
-    $requestPayload['image'] = preg_replace('#^data:image/\w+;base64,#', '', $referenceImages[0]);
-    if (count($referenceImages) > 1) {
-        $requestPayload['mask'] = preg_replace('#^data:image/\w+;base64,#', '', $referenceImages[1]);
-    }
+    // 尝试多种格式兼容不同 API
+    $requestPayload['images'] = $referenceImages;                         // 数组，data URL
+    $requestPayload['reference_image_urls'] = $referenceImages;           // 数组，data URL
+
+    // 也提取纯 base64 做备选
+    $b64refs = array_map(function ($img) {
+        return preg_replace('#^data:image/\w+;base64,#', '', $img);
+    }, $referenceImages);
+    $requestPayload['reference_images'] = $b64refs;                       // 数组，纯 base64
 }
 
 $requestBody = json_encode($requestPayload);
 
 // ---- DEBUG ----
 @file_put_contents(__DIR__ . '/../uploads/debug_request.json',
-    json_encode(['time' => date('Y-m-d H:i:s'), 'has_refs' => !empty($referenceImages), 'ref_count' => count($referenceImages), 'use_edits' => $useEditsEndpoint, 'payload' => $requestPayload], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)
+    json_encode(['time' => date('Y-m-d H:i:s'), 'has_refs' => !empty($referenceImages), 'ref_count' => count($referenceImages), 'keys' => array_keys($requestPayload)], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)
 );
 
 $response = null;
@@ -121,7 +123,7 @@ foreach ($orderedProfiles as $profile) {
     $baseUrl = cleanBaseUrl($profile['base_url'] ?? '');
     if (empty($apiKey) || empty($baseUrl)) continue;
 
-    $apiUrl = $baseUrl . ($useEditsEndpoint ? '/v1/images/edits' : '/v1/images/generations');
+    $apiUrl = $baseUrl . '/v1/images/generations';
 
     for ($retry = 0; $retry <= $maxRetries; $retry++) {
         $ch = curl_init($apiUrl);
@@ -160,7 +162,7 @@ try {
     $logStmt = $pdo->prepare('INSERT INTO api_logs (user_id, endpoint, method, status, http_code, duration_ms, error_msg) VALUES (?, ?, ?, ?, ?, ?, ?)');
     $logStmt->execute([
         $uid,
-        $useEditsEndpoint ? '/v1/images/edits' : '/v1/images/generations',
+        '/v1/images/generations',
         'POST',
         $httpCode >= 200 && $httpCode < 300 ? 'success' : 'error',
         $httpCode,
