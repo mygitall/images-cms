@@ -169,6 +169,20 @@ function PreviewDialog({
   function toggleReferenceMode() {
     if (!referenceMode) {
       setReferenceMode(true);
+      if (!isTemplate && image && referenceImages.length === 0) {
+        const img = new window.Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.naturalWidth;
+          canvas.height = img.naturalHeight;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+          setReferenceImages([canvas.toDataURL('image/jpeg', 0.9)]);
+        };
+        img.onerror = () => {};
+        img.src = image;
+      }
     } else {
       setReferenceMode(false);
       setReferenceImages([]);
@@ -180,6 +194,10 @@ function PreviewDialog({
     if (!isSignedIn) {
       onAuthRequired();
       setGenerationState({ status: 'idle', image: generatedImage, message: '' });
+      return;
+    }
+    if (referenceMode && referenceImages.length === 0) {
+      setGenerationState({ status: 'error', image: generatedImage, message: language === 'zh' ? '请至少上传一张参考图' : 'Please upload at least one reference image' });
       return;
     }
     const prompt = editablePrompt.trim();

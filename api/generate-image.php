@@ -94,7 +94,14 @@ $requestPayload = [
 ];
 
 if (!empty($referenceImages)) {
-    $requestPayload['image'] = $referenceImages;
+    // 处理参考图：去除 data URL 前缀，转为纯 base64
+    $processed = array_map(function ($img) {
+        if (strpos($img, 'data:image/') === 0 && strpos($img, ';base64,') !== false) {
+            return substr($img, strpos($img, ';base64,') + 8);
+        }
+        return $img;
+    }, $referenceImages);
+    $requestPayload['image'] = count($processed) === 1 ? $processed[0] : $processed;
 }
 
 $requestBody = json_encode($requestPayload);
