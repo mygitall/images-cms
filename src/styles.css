@@ -1422,7 +1422,7 @@ button {
   grid-template-columns: minmax(0, 1.08fr) minmax(360px, 0.92fr);
   width: min(1240px, 100%);
   max-height: min(880px, 92vh);
-  overflow: hidden;
+  overflow: auto;
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 8px;
   background:
@@ -1536,7 +1536,6 @@ button {
 .previewContent {
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
-  overflow: auto;
   padding: 30px;
 }
 
@@ -1740,6 +1739,37 @@ button {
   border-color: rgba(255, 198, 102, 0.28);
   background: rgba(255, 198, 102, 0.08);
   color: #ffe1a8;
+}
+
+.generationTimer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+  color: rgba(66, 230, 255, 0.7);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.generationModels {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 10px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.generationModels code {
+  display: inline-block;
+  padding: 1px 6px;
+  border: 1px solid rgba(103, 232, 249, 0.16);
+  border-radius: 3px;
+  background: rgba(103, 232, 249, 0.05);
+  color: rgba(103, 232, 249, 0.55);
+  font-size: 10px;
+  font-family: monospace;
 }
 
 .generationPanel button {
@@ -1996,6 +2026,371 @@ button {
 .adminDialog {
   width: min(1180px, 100%);
   padding: 24px;
+}
+
+.adminBlock.compact {
+  margin-bottom: 20px;
+}
+
+.apiSwitchBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.apiSwitchBtn {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 120px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #eef5ff;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: border-color 0.15s;
+}
+
+.apiSwitchBtn:hover { border-color: rgba(66, 230, 255, 0.4); }
+
+.apiSwitchBtn.active {
+  border-color: rgba(120, 255, 185, 0.45);
+  background: rgba(120, 255, 185, 0.08);
+}
+
+.apiSwitchBtn.busy { opacity: 0.5; pointer-events: none; }
+
+.apiSwitchBtn strong { font-size: 13px; font-weight: 700; }
+
+.apiSwitchBtn span {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.apiDot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-top: 4px;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.apiDot.ok { background: #4ade80; }
+.apiDot.busy { background: #facc15; }
+.apiDot.timeout { background: #f87171; }
+
+.apiStatusTag {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-left: 8px;
+}
+
+.apiProfileCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.apiProfileCard .apiSwitchBtn {
+  border-radius: 8px 8px 0 0;
+}
+
+.apiProfileCard.active .apiSwitchBtn {
+  border-radius: 8px 8px 0 0;
+}
+
+.apiProfileActions {
+  display: flex;
+  gap: 2px;
+  padding: 4px 8px;
+  background: rgba(0,0,0,0.15);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+}
+
+.apiProfileCard.active .apiProfileActions {
+  border-color: rgba(120,255,185,0.2);
+  background: rgba(120,255,185,0.04);
+}
+
+.apiEditBtn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 8px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: rgba(255,255,255,0.45);
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.apiEditBtn:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.8); }
+
+.apiDeleteBtn:hover { color: #f87171; }
+
+.apiAddBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 54px;
+  border: 1px dashed rgba(255,255,255,0.14);
+  border-radius: 8px;
+  padding: 10px 14px;
+  background: transparent;
+  color: rgba(255,255,255,0.4);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.apiAddBtn:hover { border-color: rgba(66,230,255,0.35); color: rgba(255,255,255,0.7); }
+
+.apiEditForm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid rgba(66,230,255,0.2);
+  border-radius: 8px;
+  background: rgba(66,230,255,0.04);
+}
+
+.apiEditForm strong {
+  font-size: 12px;
+  color: rgba(66,230,255,0.8);
+  min-width: 60px;
+}
+
+.apiEditLabel {
+  font-size: 11px;
+  color: rgba(255,255,255,0.35);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-right: -6px;
+}
+
+.apiEditInput {
+  width: auto !important;
+  flex: 1 1 160px;
+  min-width: 100px;
+  height: 34px !important;
+  font-size: 12px !important;
+}
+
+.apiEditActions {
+  display: flex;
+  gap: 8px;
+}
+
+.apiEditActions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 32px;
+  border: 1px solid rgba(255,255,255,0.16);
+  border-radius: 6px;
+  padding: 0 12px;
+  background: rgba(255,255,255,0.06);
+  color: #eef5ff;
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.apiEditActions button:hover { background: rgba(255,255,255,0.1); }
+.apiEditActions button:first-child { border-color: rgba(120,255,185,0.3); background: rgba(120,255,185,0.1); }
+
+.apiModelsBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 8px 12px;
+  background: rgba(66,230,255,0.04);
+  border: 1px solid rgba(66,230,255,0.1);
+  border-radius: 6px;
+}
+
+.apiModelsBar span {
+  font-size: 11px;
+  color: rgba(255,255,255,0.4);
+}
+
+.apiModelsBar code {
+  display: inline-block;
+  padding: 2px 8px;
+  border: 1px solid rgba(120,255,185,0.18);
+  border-radius: 4px;
+  background: rgba(120,255,185,0.06);
+  color: rgba(120,255,185,0.7);
+  font-size: 11px;
+  font-family: monospace;
+}
+
+/* Generation History */
+.historyDialog {
+  position: relative;
+  width: min(900px, 100%);
+  max-height: min(90vh, 800px);
+  overflow-y: auto;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  padding: 30px;
+  background: radial-gradient(circle at 10% 0%, rgba(66, 230, 255, 0.12), transparent 34%),
+    linear-gradient(145deg, rgba(11, 17, 33, 0.98), rgba(7, 11, 22, 0.96));
+  box-shadow: 0 34px 120px rgba(0, 0, 0, 0.56);
+}
+
+.historyHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.historyHeader h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #eef5ff;
+}
+
+.historyHeader span {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 13px;
+}
+
+.historyGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.historyCard {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.03);
+  transition: border-color 0.15s;
+}
+
+.historyCard:hover {
+  border-color: rgba(103, 232, 249, 0.35);
+}
+
+.historyImageWrap {
+  position: relative;
+}
+
+.historyCard img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  display: block;
+}
+
+.historyDeleteBtn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.5);
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.historyImageWrap:hover .historyDeleteBtn { opacity: 1; }
+
+.historyDeleteBtn:hover {
+  background: rgba(220, 38, 38, 0.7);
+  color: #fff;
+}
+
+.historyPlaceholder {
+  width: 100%;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.2);
+}
+
+.historyInfo {
+  padding: 12px;
+}
+
+.historyInfo p {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  min-height: 32px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin: 0;
+}
+
+.historyInfo time {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.3);
+  margin-top: 8px;
+  display: block;
+}
+
+.historyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 48px 0;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+@media (max-width: 768px) {
+  .historyDialog {
+    width: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+    padding: 20px;
+  }
+  .historyGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  .historyCard img,
+  .historyPlaceholder {
+    height: 140px;
+  }
 }
 
 .billingDialog {

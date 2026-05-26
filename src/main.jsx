@@ -778,7 +778,8 @@ function generationErrorMessage(error, language) {
   if (error === 'CREDITS_REQUIRED') return t.creditsRequired;
   if (error === 'AUTH_REQUIRED') return t.authRequired;
   if (error === 'FORBIDDEN') return t.adminOnly;
-  if (error === 'UPSTREAM_BUSY') return t.generationBusy;
+  if (error === 'API_KEY_INVALID') return language === 'zh' ? 'API Key 无效，请在后台更新' : 'API Key invalid, update in Admin panel';
+  if (error === 'UPSTREAM_BUSY') return language === 'zh' ? 'API 服务超时，请稍后重试' : 'API timed out, please try again later';
   if (error === 'SERVER_NOT_CONFIGURED') return t.serverUnavailable;
   if (error === 'BILLING_NOT_CONFIGURED') return t.checkoutUnavailable;
   if (error === 'CHECKOUT_FAILED' || error === 'BILLING_PORTAL_FAILED') return t.checkoutFailed;
@@ -1246,7 +1247,7 @@ function AuthModal({ open, language, onClose, onSignIn }) {
   );
 }
 
-function UserMenu({ language, session, profile, onSignIn, onSignOut, onAdmin, onBilling, onAccount, onFavorites }) {
+function UserMenu({ language, session, profile, onSignIn, onSignOut, onAdmin, onBilling, onAccount, onFavorites, onHistory }) {
   const t = copy[language];
   const [open, setOpen] = useState(false);
   const ref = useDropdownDismiss(open, setOpen);
@@ -1333,6 +1334,18 @@ function UserMenu({ language, session, profile, onSignIn, onSignOut, onAdmin, on
           >
             <Heart size={17} />
             {t.myFavorites}
+          </button>
+          <button
+            className="dropdownAction"
+            type="button"
+            role="menuitem"
+            onClick={() => {
+              setOpen(false);
+              onHistory();
+            }}
+          >
+            <ImageIcon size={17} />
+            {language === 'zh' ? '生图历史' : 'History'}
           </button>
           <button
             className="dropdownAction"
@@ -1778,9 +1791,84 @@ function AdminPanel({ open, language, session, casesById, onClose, onOpenCase })
   const [customEnd, setCustomEnd] = useState(() => dateInputValue());
   const [status, setStatus] = useState('idle');
   const [message, setMessage] = useState('');
+  const [apiProfiles, setApiProfiles] = useState([]);
+  const [activeApi, setActiveApi] = useState('');
+  const [apiStatus, setApiStatus] = useState('');
+  const [apiModels, setApiModels] = useState([]);
   const [adjustment, setAdjustment] = useState(null);
   const [adjustStatus, setAdjustStatus] = useState('idle');
+  const [apiSwitchBusy, setApiSwitchBusy] = useState(false);
+  const [editProfile, setEditProfile] = useState(null); // { name, api_key, base_url } | 'new'
+  const [editKey, setEditKey] = useState('');
+  const [editUrl, setEditUrl] = useState('');
+  const [editName, setEditName] = useState('');
   useBodyScrollLock(open);
+
+  async function loadApiConfig() {
+    try {
+      const response = await fetch('/api/admin/api-config', { headers: getAuthHeaders(session) });
+      const payload = await response.json().catch(() => ({}));
+      if (payload?.ok) {
+        setApiProfiles(payload.profiles || []);
+        setActiveApi(payload.active || '');
+        setApiStatus(payload.apiStatus || '');
+        setApiModels(payload.models || []);
+      }
+    } catch {}
+  }
+
+  async function handleApiSwitch(profileName) {
+    setApiSwitchBusy(true);
+    try {
+      const response = await fetch('/api/admin/api-config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders(session) },
+        body: JSON.stringify({ active: profileName })
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (payload?.ok) { setActiveApi(payload.active); loadApiConfig(); }
+    } catch {}
+    setApiSwitchBusy(false);
+  }
+
+  async function handleApiSave(event) {
+    event.preventDefault();
+    setApiSwitchBusy(true);
+    try {
+      const body = editProfile === 'new'
+        ? { addProfile: editName.trim(), api_key: editKey.trim(), base_url: editUrl.trim() }
+        : { editProfile: editProfile.name, api_key: editKey.trim(), base_url: editUrl.trim() };
+      const response = await fetch('/api/admin/api-config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders(session) },
+        body: JSON.stringify(body)
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (payload?.ok) { setEditProfile(null); loadApiConfig(); }
+    } catch {}
+    setApiSwitchBusy(false);
+  }
+
+  async function handleApiDelete(profileName) {
+    if (!confirm((language === 'zh' ? '确定删除 API' : 'Delete API') + ' "' + profileName + '"?')) return;
+    setApiSwitchBusy(true);
+    try {
+      await fetch('/api/admin/api-config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders(session) },
+        body: JSON.stringify({ deleteProfile: profileName })
+      });
+      loadApiConfig();
+    } catch {}
+    setApiSwitchBusy(false);
+  }
+
+  function openEditProfile(profile) {
+    setEditProfile(profile || 'new');
+    setEditKey(profile && profile.name ? '' : '');
+    setEditUrl(profile && profile.name ? '' : '');
+    setEditName('');
+  }
 
   async function loadAdminData(nextRange = range, nextStart = customStart, nextEnd = customEnd) {
     if (!session?.access_token && !session?.phpSession) {
@@ -1866,8 +1954,8 @@ function AdminPanel({ open, language, session, casesById, onClose, onOpenCase })
   }
 
   useEffect(() => {
-    if (open) loadAdminData(range);
-  }, [open, session?.access_token, range]);
+    if (open) { loadAdminData(range); loadApiConfig(); }
+  }, [open, session?.access_token, session?.phpSession, range]);
 
   if (!open) return null;
   const traffic = metrics?.traffic || {};
@@ -1959,6 +2047,69 @@ function AdminPanel({ open, language, session, casesById, onClose, onOpenCase })
 
         {metrics ? (
           <div className="adminDashboard">
+            <section className="adminBlock compact">
+              <h3><Settings size={18} /> {language === 'zh' ? 'API 配置' : 'API Config'}</h3>
+              <div className="apiSwitchBar">
+                {apiProfiles.map((p) => (
+                  <div key={p.name} className={cx('apiProfileCard', p.isActive && 'active')}>
+                    <button
+                      className={cx('apiSwitchBtn', apiSwitchBusy && 'busy')}
+                      type="button"
+                      disabled={apiSwitchBusy}
+                      onClick={() => handleApiSwitch(p.name)}
+                    >
+                      <strong>{p.name}</strong>
+                      <span>{p.base_url || ''}</span>
+                      {p.isActive ? <em className={cx('apiDot', apiStatus)} /> : null}
+                    </button>
+                    <div className="apiProfileActions">
+                      <button className="apiEditBtn" type="button" onClick={() => openEditProfile(p)} title={language === 'zh' ? '编辑' : 'Edit'}>
+                        <Settings size={13} />
+                      </button>
+                      {p.name !== 'default' ? (
+                        <button className="apiEditBtn apiDeleteBtn" type="button" onClick={() => handleApiDelete(p.name)} title={language === 'zh' ? '删除' : 'Delete'}>
+                          <X size={13} />
+                        </button>
+                      ) : null}
+                    </div>
+                  </div>
+                ))}
+                <button className="apiAddBtn" type="button" onClick={() => openEditProfile('new')} title={language === 'zh' ? '新增' : 'Add'}>
+                  <UserPlus size={16} /> {language === 'zh' ? '新增' : 'Add'}
+                </button>
+                {apiStatus ? (
+                  <span className="apiStatusTag">
+                    {apiStatus === 'ok' ? (language === 'zh' ? '● 正常' : '● OK') :
+                     apiStatus === 'busy' ? (language === 'zh' ? '● 繁忙' : '● Busy') :
+                     apiStatus === 'timeout' ? (language === 'zh' ? '● 超时' : '● Timeout') :
+                     apiStatus === 'invalid' ? (language === 'zh' ? '● Key 无效' : '● Invalid Key') :
+                     '● ' + apiStatus}
+                  </span>
+                ) : null}
+              </div>
+              {apiModels.length > 0 ? (
+                <div className="apiModelsBar">
+                  <span>{language === 'zh' ? '可用模型' : 'Models'}：</span>
+                  {apiModels.map((m) => <code key={m}>{m}</code>)}
+                </div>
+              ) : null}
+              {editProfile ? (
+                <form className="apiEditForm" onSubmit={handleApiSave}>
+                  <strong>{editProfile === 'new' ? (language === 'zh' ? '新增 API' : 'New API') : (language === 'zh' ? '编辑 ' : 'Edit ') + editProfile.name}</strong>
+                  {editProfile === 'new' ? (
+                    <input className="authInput apiEditInput" type="text" placeholder={language === 'zh' ? '名称' : 'Name'} value={editName} onChange={(e) => setEditName(e.target.value)} autoFocus />
+                  ) : null}
+                  <label className="apiEditLabel">Key</label>
+                  <input className="authInput apiEditInput" type="text" placeholder="sk-..." value={editKey} onChange={(e) => setEditKey(e.target.value)} autoFocus={editProfile !== 'new'} />
+                  <label className="apiEditLabel">URL</label>
+                  <input className="authInput apiEditInput" type="text" placeholder="https://..." value={editUrl} onChange={(e) => setEditUrl(e.target.value)} />
+                  <div className="apiEditActions">
+                    <button type="submit" disabled={apiSwitchBusy}>{apiSwitchBusy ? <LoaderCircle className="spinIcon" size={14} /> : <Check size={14} />} {language === 'zh' ? '保存' : 'Save'}</button>
+                    <button type="button" onClick={() => setEditProfile(null)}>{language === 'zh' ? '取消' : 'Cancel'}</button>
+                  </div>
+                </form>
+              ) : null}
+            </section>
             <section className="adminBlock">
               <h3>
                 <TrendingUp size={18} />
@@ -2677,7 +2828,28 @@ function PreviewDialog({
     image: '',
     message: ''
   });
+  const [genElapsed, setGenElapsed] = useState(0);
+  const genTimerRef = useRef(null);
+  const [availModels, setAvailModels] = useState([]);
   useBodyScrollLock(Boolean(preview));
+
+  useEffect(() => {
+    if (generationState.status === 'generating') {
+      setGenElapsed(0);
+      genTimerRef.current = setInterval(() => setGenElapsed((s) => s + 1), 1000);
+    } else {
+      if (genTimerRef.current) clearInterval(genTimerRef.current);
+    }
+    return () => { if (genTimerRef.current) clearInterval(genTimerRef.current); };
+  }, [generationState.status]);
+
+  useEffect(() => {
+    if (!preview || preview.type !== 'case') return;
+    fetch('/api/models')
+      .then((r) => r.json())
+      .then((p) => { if (p?.ok) setAvailModels(p.models || []); })
+      .catch(() => {});
+  }, [preview?.item?.id]);
 
   useEffect(() => {
     if (!preview) return undefined;
@@ -2735,7 +2907,7 @@ function PreviewDialog({
   const pitfalls = listFor(item.pitfalls, language);
   const isGenerating = generationState.status === 'generating';
   const generatedImage = !isTemplate ? generationState.image : '';
-  const isSignedIn = Boolean(session?.access_token);
+  const isSignedIn = Boolean(session?.access_token || session?.phpSession);
   const creditBalance = Number(profile?.creditBalance || 0);
   const isOutOfCredits = isSignedIn
     && creditBalance <= 0
@@ -2917,6 +3089,18 @@ function PreviewDialog({
               <div className={cx('generationQuota', (!isSignedIn || isOutOfCredits) && 'used')}>
                 {quotaText}
               </div>
+              {availModels.length > 0 ? (
+                <div className="generationModels">
+                  {language === 'zh' ? '模型：' : 'Models: '}
+                  {availModels.map((m) => <code key={m}>{m}</code>)}
+                </div>
+              ) : null}
+              {isGenerating ? (
+                <div className="generationTimer">
+                  <LoaderCircle className="spinIcon" size={16} />
+                  {language === 'zh' ? `生成中... ${genElapsed}s` : `Generating... ${genElapsed}s`}
+                </div>
+              ) : null}
               <button type="button" onClick={handleGenerate} disabled={generationLocked}>
                 {isGenerating ? <LoaderCircle className="spinIcon" size={17} /> : <ImageIcon size={17} />}
                 {isGenerating ? t.generating : isOutOfCredits ? t.buyCredits : isSignedIn ? t.generateImage : t.signInToGenerate}
@@ -2973,6 +3157,97 @@ function PreviewDialog({
   );
 }
 
+function GenerationHistory({ open, language, onClose }) {
+  const t = copy[language];
+  const [items, setItems] = useState([]);
+  const [status, setStatus] = useState('idle');
+  const [deleteBusy, setDeleteBusy] = useState(null);
+  useBodyScrollLock(open);
+
+  function loadHistory() {
+    setStatus('loading');
+    fetch('/api/generation-history')
+      .then((r) => r.json())
+      .then((payload) => {
+        setItems(payload?.ok ? payload.history || [] : []);
+        setStatus('ready');
+      })
+      .catch(() => setStatus('error'));
+  }
+
+  async function handleDelete(item) {
+    setDeleteBusy(item.id);
+    try {
+      const res = await fetch('/api/generation-delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: item.id })
+      });
+      const payload = await res.json().catch(() => ({}));
+      if (payload?.ok) {
+        setItems((prev) => prev.filter((i) => i.id !== item.id));
+      }
+    } catch {}
+    setDeleteBusy(null);
+  }
+
+  useEffect(() => {
+    if (open) loadHistory();
+  }, [open]);
+
+  if (!open) return null;
+
+  return (
+    <div
+      className="previewOverlay historyOverlay"
+      role="presentation"
+      onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <section className="historyDialog" role="dialog" aria-modal="true">
+        <button className="previewClose" type="button" onClick={onClose}><X size={20} /></button>
+        <div className="historyHeader">
+          <h2><ImageIcon size={20} /> {language === 'zh' ? '生图历史' : 'Generation History'}</h2>
+          <span>{language === 'zh' ? `共 ${items.length} 张` : `${items.length} images`}</span>
+        </div>
+        {status === 'loading' ? (
+          <div className="historyState"><LoaderCircle className="spinIcon" size={22} /><span>{t.loading}</span></div>
+        ) : status === 'error' ? (
+          <div className="historyState"><p>{language === 'zh' ? '加载失败' : 'Load failed'}</p></div>
+        ) : items.length === 0 ? (
+          <div className="historyState"><p>{language === 'zh' ? '暂无生图记录' : 'No generation history'}</p></div>
+        ) : (
+          <div className="historyGrid">
+            {items.map((item) => (
+              <div className="historyCard" key={item.id}>
+                <div className="historyImageWrap">
+                  {item.imageUrl ? (
+                    <img src={item.imageUrl} alt="" loading="lazy" />
+                  ) : (
+                    <div className="historyPlaceholder"><ImageIcon size={32} /></div>
+                  )}
+                  <button
+                    className="historyDeleteBtn"
+                    type="button"
+                    title={language === 'zh' ? '删除' : 'Delete'}
+                    disabled={deleteBusy === item.id}
+                    onClick={() => handleDelete(item)}
+                  >
+                    {deleteBusy === item.id ? <LoaderCircle className="spinIcon" size={12} /> : <X size={12} />}
+                  </button>
+                </div>
+                <div className="historyInfo">
+                  <p>{item.prompt}</p>
+                  <time>{item.createdAt ? new Date(item.createdAt).toLocaleString(language === 'zh' ? 'zh-CN' : 'en-US') : ''}</time>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}
+
 function App() {
   useGaPageViews();
   const [siteData, setSiteData] = useState(null);
@@ -2993,6 +3268,7 @@ function App() {
   const [accountOpen, setAccountOpen] = useState(false);
   const [accountInitialSection, setAccountInitialSection] = useState('overview');
   const [adminOpen, setAdminOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const [billingOpen, setBillingOpen] = useState(false);
   const [billingNotice, setBillingNotice] = useState('');
   const { copiedId, copyPrompt, copyText } = useCopy();
@@ -3358,6 +3634,7 @@ function App() {
             onSignOut={handleSignOut}
             onAccount={() => handleOpenAccount('overview')}
             onFavorites={() => handleOpenAccount('favorites')}
+            onHistory={() => setHistoryOpen(true)}
             onAdmin={() => setAdminOpen(true)}
             onBilling={() => {
               setBillingNotice('');
@@ -3535,6 +3812,11 @@ function App() {
         casesById={casesById}
         onClose={() => setAdminOpen(false)}
         onOpenCase={handleOpenCaseFromAdmin}
+      />
+      <GenerationHistory
+        open={historyOpen}
+        language={language}
+        onClose={() => setHistoryOpen(false)}
       />
       <BillingPanel
         open={billingOpen}

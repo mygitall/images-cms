@@ -13,6 +13,11 @@
   RewriteRule ^api/admin/metrics$ /api/admin/metrics.php [L,QSA]
   RewriteRule ^api/admin/credits/adjust$ /api/admin/credits-adjust.php [L,QSA]
   RewriteRule ^api/billing/plans$ /api/billing/plans.php [L,QSA]
+  RewriteRule ^api/generate-image$ /api/generate-image.php [L,QSA]
+  RewriteRule ^api/generation-history$ /api/generation-history.php [L,QSA]
+  RewriteRule ^api/generation-delete$ /api/generation-delete.php [L,QSA]
+  RewriteRule ^api/models$ /api/models.php [L,QSA]
+  RewriteRule ^api/admin/api-config$ /api/admin/api-config.php [L,QSA]
   RewriteRule ^api/ - [R=503,L]
 
   # Redirect /index.html to /dist/ (except root / which is handled below)
