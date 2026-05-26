@@ -288,16 +288,13 @@ function App() {
 
   function handleFilterChange(setter, value) {
     setter(value);
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        const gallery = document.getElementById('gallery');
-        if (gallery) {
-          const topbarHeight = 80;
-          const y = gallery.getBoundingClientRect().top + window.scrollY - topbarHeight;
-          window.scrollTo({ top: y, behavior: 'smooth' });
-        }
-      });
-    });
+    setTimeout(() => {
+      const el = document.querySelector('.caseGrid') || document.getElementById('gallery');
+      if (el) {
+        const top = el.getBoundingClientRect().top + window.pageYOffset - 84;
+        window.scrollTo({ top, behavior: 'smooth' });
+      }
+    }, 100);
   }
 
   function handleOpenCaseFromAccount(caseItem) {
