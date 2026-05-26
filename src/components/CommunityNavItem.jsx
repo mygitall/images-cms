@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { copy } from '../i18n';
 import { cx } from '../utils';
 import WeChatIcon from './WeChatIcon';
-import wechatCommunityImage from '../assets/wechat-community.jpg';
+
+const PLACEHOLDER = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="430" height="430"><rect fill="#1a1a2e" width="430" height="430"/><text fill="#334" font-size="16" text-anchor="middle" x="215" y="220">placeholder</text></svg>');
 
 function CommunityNavItem({ language }) {
   const t = copy[language];
@@ -28,7 +29,7 @@ function CommunityNavItem({ language }) {
         {t.navCommunity}
       </button>
       <span className="communityPopover" role="dialog" aria-label={t.navCommunity}>
-        <img src={wechatCommunityImage} alt={t.communityQrAlt} loading="lazy" />
+        <img src={PLACEHOLDER} alt="" loading="lazy" />
       </span>
     </span>
   );

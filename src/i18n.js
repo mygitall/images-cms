@@ -209,7 +209,7 @@ const copy = {
     navCases: '案例',
     navSkill: '技能',
     navTemplates: '模板',
-    navCommunity: '交流群',
+    navCommunity: '测试！',
     communityQrAlt: 'GPT-Image2 微信交流群邀请卡',
     eyebrow: '实时更新的 GPT-Image2 提示词画廊',
     title: '从爆款图片，到可复用 Prompt。',
