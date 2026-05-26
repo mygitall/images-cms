@@ -308,7 +308,8 @@ function App() {
   }
 
   function handlePhpSignIn(userData) {
-    const user = userData?.id ? userData : null;
+    const userDataOrWrapped = userData?.user || userData;
+    const user = (userDataOrWrapped?.ok !== false && userDataOrWrapped?.id) ? userDataOrWrapped : null;
     setPhpSession(Boolean(user));
     setSession(user ? { phpSession: true } : null);
     if (user) setProfile(user);
@@ -436,6 +437,7 @@ function App() {
 
   return (
     <main>
+      <a className="skipLink" href="#gallery">{language === 'zh' ? '跳到主内容' : 'Skip to content'}</a>
       <header className="topbar">
         <a className="brand" href="#">
           <WandSparkles size={21} />
