@@ -288,7 +288,16 @@ function App() {
 
   function handleFilterChange(setter, value) {
     setter(value);
-    document.getElementById('gallery')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const gallery = document.getElementById('gallery');
+        if (gallery) {
+          const topbarHeight = 80;
+          const y = gallery.getBoundingClientRect().top + window.scrollY - topbarHeight;
+          window.scrollTo({ top: y, behavior: 'smooth' });
+        }
+      });
+    });
   }
 
   function handleOpenCaseFromAccount(caseItem) {
