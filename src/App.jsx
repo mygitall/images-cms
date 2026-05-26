@@ -286,6 +286,11 @@ function App() {
     if (nextProfile) setProfile(nextProfile);
   }
 
+  function handleFilterChange(setter, value) {
+    setter(value);
+    document.getElementById('gallery')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
   function handleOpenCaseFromAccount(caseItem) {
     setAccountOpen(false);
     setAccountInitialSection('overview');
@@ -465,9 +470,9 @@ function App() {
           <div>
             <strong>{t.category}</strong>
             <div className="filterRow">
-              <FilterPill active={category === 'All'} onClick={() => setCategory('All')}>{t.all}</FilterPill>
+              <FilterPill active={category === 'All'} onClick={() => handleFilterChange(setCategory, 'All')}>{t.all}</FilterPill>
               {orderedCategories.map((item) => (
-                <FilterPill key={item} active={category === item} onClick={() => setCategory(item)}>
+                <FilterPill key={item} active={category === item} onClick={() => handleFilterChange(setCategory, item)}>
                   {localizeLabel(item, language, styleLibrary)}
                 </FilterPill>
               ))}
@@ -476,9 +481,9 @@ function App() {
           <div>
             <strong>{t.style}</strong>
             <div className="filterRow">
-              <FilterPill active={style === 'All'} onClick={() => setStyle('All')}>{t.all}</FilterPill>
+              <FilterPill active={style === 'All'} onClick={() => handleFilterChange(setStyle, 'All')}>{t.all}</FilterPill>
               {orderedStyles.map((item) => (
-                <FilterPill key={item} active={style === item} onClick={() => setStyle(item)}>
+                <FilterPill key={item} active={style === item} onClick={() => handleFilterChange(setStyle, item)}>
                   {localizeLabel(item, language, styleLibrary)}
                 </FilterPill>
               ))}
@@ -487,9 +492,9 @@ function App() {
           <div>
             <strong>{t.scene}</strong>
             <div className="filterRow">
-              <FilterPill active={scene === 'All'} onClick={() => setScene('All')}>{t.all}</FilterPill>
+              <FilterPill active={scene === 'All'} onClick={() => handleFilterChange(setScene, 'All')}>{t.all}</FilterPill>
               {orderedScenes.map((item) => (
-                <FilterPill key={item} active={scene === item} onClick={() => setScene(item)}>
+                <FilterPill key={item} active={scene === item} onClick={() => handleFilterChange(setScene, item)}>
                   {localizeLabel(item, language, styleLibrary)}
                 </FilterPill>
               ))}
