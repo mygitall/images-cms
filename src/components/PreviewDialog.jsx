@@ -291,33 +291,33 @@ function PreviewDialog({
                 maxLength={6000}
               />
             )}
-          </div>
-          {!isTemplate ? (
-            <div className="generationPanel">
-              <div className={cx('generationQuota', (!isSignedIn || isOutOfCredits) && 'used')}>
-                {quotaText}
+            {!isTemplate ? (
+              <div className="generationPanel">
+                <div className={cx('generationQuota', (!isSignedIn || isOutOfCredits) && 'used')}>
+                  {quotaText}
+                </div>
+                {availModels.length > 0 ? (
+                  <div className="generationModels">
+                    {language === 'zh' ? '模型：' : 'Models: '}
+                    {availModels.map((m) => <code key={m}>{m}</code>)}
+                  </div>
+                ) : null}
+                {isGenerating ? (
+                  <div className="generationTimer">
+                    <LoaderCircle className="spinIcon" size={16} />
+                    {language === 'zh' ? `生成中... ${genElapsed}s` : `Generating... ${genElapsed}s`}
+                  </div>
+                ) : null}
+                <button type="button" onClick={handleGenerate} disabled={generationLocked}>
+                  {isGenerating ? <LoaderCircle className="spinIcon" size={17} /> : <ImageIcon size={17} />}
+                  {isGenerating ? t.generating : isOutOfCredits ? t.buyCredits : isSignedIn ? t.generateImage : t.signInToGenerate}
+                </button>
+                {generationState.status === 'error' ? (
+                  <p className="generationMessage">{generationState.message}</p>
+                ) : null}
               </div>
-              {availModels.length > 0 ? (
-                <div className="generationModels">
-                  {language === 'zh' ? '模型：' : 'Models: '}
-                  {availModels.map((m) => <code key={m}>{m}</code>)}
-                </div>
-              ) : null}
-              {isGenerating ? (
-                <div className="generationTimer">
-                  <LoaderCircle className="spinIcon" size={16} />
-                  {language === 'zh' ? `生成中... ${genElapsed}s` : `Generating... ${genElapsed}s`}
-                </div>
-              ) : null}
-              <button type="button" onClick={handleGenerate} disabled={generationLocked}>
-                {isGenerating ? <LoaderCircle className="spinIcon" size={17} /> : <ImageIcon size={17} />}
-                {isGenerating ? t.generating : isOutOfCredits ? t.buyCredits : isSignedIn ? t.generateImage : t.signInToGenerate}
-              </button>
-              {generationState.status === 'error' ? (
-                <p className="generationMessage">{generationState.message}</p>
-              ) : null}
-            </div>
-          ) : null}
+            ) : null}
+          </div>
           {isTemplate && (guidance.length || pitfalls.length || item.exampleCases?.length) ? (
             <div className="previewColumns">
               {guidance.length ? (
