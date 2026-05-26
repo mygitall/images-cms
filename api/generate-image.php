@@ -94,7 +94,7 @@ if (!empty($referenceImages)) {
     }
 
     $requestPayload = [
-        'model' => 'gemini-3-pro-image-preview',
+        'model' => 'gpt-image-2',
         'messages' => [['role' => 'user', 'content' => $content]],
         'stream' => false
     ];
