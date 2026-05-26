@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  ArrowUpRight, Check, Copy, Eye, Heart, ImageIcon, LoaderCircle, X
+  ArrowUpRight, Check, Copy, Eye, Heart, ImageIcon, ImagePlus, LoaderCircle, X
 } from 'lucide-react';
 import { copy as i18nCopy } from '../i18n';
 import {
@@ -39,6 +39,9 @@ function PreviewDialog({
   const [genElapsed, setGenElapsed] = useState(0);
   const genTimerRef = useRef(null);
   const [availModels, setAvailModels] = useState([]);
+  const [referenceMode, setReferenceMode] = useState(false);
+  const [referenceImage, setReferenceImage] = useState('');
+  const fileInputRef = useRef(null);
   useBodyScrollLock(Boolean(preview));
 
   useEffect(() => {
@@ -78,6 +81,9 @@ function PreviewDialog({
 
   useEffect(() => {
     if (!preview) return;
+
+    setReferenceMode(false);
+    setReferenceImage('');
 
     if (preview.type === 'case') {
       const savedGeneration = getSavedGeneration(preview.item.id);
@@ -134,6 +140,27 @@ function PreviewDialog({
   const generationLocked = isGenerating;
   const quotaText = isSignedIn ? getGenerationQuotaText(profile, language) : t.authRequired;
 
+  function handleFileChange(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setReferenceImage(reader.result);
+    reader.readAsDataURL(file);
+  }
+
+  function toggleReferenceMode() {
+    if (!referenceMode) {
+      // 默认使用案例原图作为参考图
+      if (!isTemplate && image && !referenceImage) {
+        setReferenceImage(image);
+      }
+      setReferenceMode(true);
+    } else {
+      setReferenceMode(false);
+      setReferenceImage('');
+    }
+  }
+
   async function handleGenerate() {
     if (isGenerating) return;
     if (!isSignedIn) {
@@ -163,7 +190,8 @@ function PreviewDialog({
         },
         body: JSON.stringify({
           caseId: isTemplate ? 0 : item.id,
-          prompt
+          prompt,
+          referenceImage: referenceMode ? referenceImage || '' : ''
         })
       });
       const payload = await response.json().catch(() => ({}));
@@ -309,6 +337,37 @@ function PreviewDialog({
               maxLength={6000}
             />
             <div className="generationPanel">
+              <div className="referenceRow">
+                <button
+                  type="button"
+                  className={cx('referenceToggle', referenceMode && 'active')}
+                  onClick={toggleReferenceMode}
+                  title={language === 'zh' ? '参考图模式' : 'Reference image mode'}
+                >
+                  <ImagePlus size={15} />
+                  {language === 'zh' ? '参考图' : 'Reference'}
+                </button>
+                {referenceMode ? (
+                  <button type="button" className="referenceUploadBtn" onClick={() => fileInputRef.current?.click()}>
+                    {language === 'zh' ? '上传' : 'Upload'}
+                  </button>
+                ) : null}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  onChange={handleFileChange}
+                />
+              </div>
+              {referenceMode && referenceImage ? (
+                <div className="referencePreview">
+                  <img src={referenceImage} alt="" />
+                  <button type="button" className="referenceRemove" onClick={() => setReferenceImage('')}>
+                    <X size={12} />
+                  </button>
+                </div>
+              ) : null}
               <div className={cx('generationQuota', (!isSignedIn || isOutOfCredits) && 'used')}>
                 {quotaText}
               </div>

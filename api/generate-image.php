@@ -40,6 +40,7 @@ if ($freeCheck > 0) $freeUsed = true;
 $input = json_decode(file_get_contents('php://input'), true) ?? [];
 $prompt = trim($input['prompt'] ?? '');
 $caseId = (int)($input['caseId'] ?? 0);
+$referenceImage = trim($input['referenceImage'] ?? '');
 
 if (!$prompt || strlen($prompt) > $maxPromptLength) {
     json_out(['ok' => false, 'error' => 'INVALID_PROMPT'], 400);
@@ -85,12 +86,18 @@ if (empty($orderedProfiles)) {
 ignore_user_abort(true);
 set_time_limit(180);
 
-$requestBody = json_encode([
+$requestPayload = [
     'model'  => 'gpt-image-2',
     'prompt' => $prompt,
     'n'      => 1,
     'size'   => '1024x1024'
-]);
+];
+
+if ($referenceImage) {
+    $requestPayload['image'] = $referenceImage;
+}
+
+$requestBody = json_encode($requestPayload);
 
 $response = null;
 $httpCode = 0;
