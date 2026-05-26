@@ -9,6 +9,7 @@ function GenerationHistory({ open, language, onClose }) {
   const [items, setItems] = useState([]);
   const [status, setStatus] = useState('idle');
   const [deleteBusy, setDeleteBusy] = useState(null);
+  const [lightboxImage, setLightboxImage] = useState(null);
   useBodyScrollLock(open);
 
   function loadHistory() {
@@ -68,7 +69,13 @@ function GenerationHistory({ open, language, onClose }) {
               <div className="historyCard" key={item.id}>
                 <div className="historyImageWrap">
                   {item.imageUrl ? (
-                    <img src={item.imageUrl} alt="" loading="lazy" />
+                    <img
+                      src={item.imageUrl}
+                      alt=""
+                      loading="lazy"
+                      onClick={() => setLightboxImage(item.imageUrl)}
+                      style={{ cursor: 'pointer' }}
+                    />
                   ) : (
                     <div className="historyPlaceholder"><ImageIcon size={32} /></div>
                   )}
@@ -91,6 +98,26 @@ function GenerationHistory({ open, language, onClose }) {
           </div>
         )}
       </section>
+      {lightboxImage ? (
+        <div
+          className="historyLightbox"
+          role="presentation"
+          onClick={() => setLightboxImage(null)}
+        >
+          <button
+            className="historyLightboxClose"
+            type="button"
+            onClick={() => setLightboxImage(null)}
+          >
+            <X size={24} />
+          </button>
+          <img
+            src={lightboxImage}
+            alt=""
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      ) : null}
     </div>
   );
 }

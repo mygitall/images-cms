@@ -127,6 +127,48 @@
   color: rgba(255, 255, 255, 0.4);
 }
 
+.historyLightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.92);
+  backdrop-filter: blur(8px);
+}
+
+.historyLightbox img {
+  max-width: 92vw;
+  max-height: 92vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 6px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
+}
+
+.historyLightboxClose {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  cursor: pointer;
+}
+
+.historyLightboxClose:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
 @media (max-width: 768px) {
   .historyDialog {
     width: 100%;
