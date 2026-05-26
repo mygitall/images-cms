@@ -4,19 +4,15 @@
  * 完全打通 images20：gen_images + api_logs + balance_logs
  */
 
-error_reporting(E_ALL);
-ini_set('display_errors', 0);
-
+require_once __DIR__ . '/../_lib/helpers.php';
 require_once __DIR__ . '/../../images20/db.php';
 if (session_status() === PHP_SESSION_NONE) session_start();
 
-header('Content-Type: application/json; charset=utf-8');
+cors_headers();
 
 $user = $_SESSION['user'] ?? null;
 if (!$user || ($user['role'] ?? '') !== 'admin') {
-    http_response_code(403);
-    echo json_encode(['ok' => false, 'error' => 'FORBIDDEN', 'loginRequired' => true], JSON_UNESCAPED_UNICODE);
-    exit;
+    json_out(['ok' => false, 'error' => 'FORBIDDEN', 'loginRequired' => true], 403);
 }
 
 $range = $_GET['range'] ?? '7d';
@@ -49,21 +45,31 @@ $endStrFull = $endStr . ' 23:59:59';
 
 // ---- 总量 ----
 $totalUsers = (int)$pdo->query("SELECT COUNT(*) FROM users")->fetchColumn();
-$rangeNewUsers = (int)$pdo->query("SELECT COUNT(*) FROM users WHERE created_at >= '{$startStr}' AND created_at <= '{$endStrFull}'")->fetchColumn();
+$stmt = $pdo->prepare("SELECT COUNT(*) FROM users WHERE created_at >= ? AND created_at <= ?");
+$stmt->execute([$startStr, $endStrFull]);
+$rangeNewUsers = (int)$stmt->fetchColumn();
 
 $totalGenImages = (int)$pdo->query("SELECT COUNT(*) FROM gen_images")->fetchColumn();
-$rangeGenImages = (int)$pdo->query("SELECT COUNT(*) FROM gen_images WHERE created_at >= '{$startStr}' AND created_at <= '{$endStrFull}'")->fetchColumn();
+$stmt = $pdo->prepare("SELECT COUNT(*) FROM gen_images WHERE created_at >= ? AND created_at <= ?");
+$stmt->execute([$startStr, $endStrFull]);
+$rangeGenImages = (int)$stmt->fetchColumn();
 
 // API 调用（images20 核心数据）
 $totalApiCalls = (int)$pdo->query("SELECT COUNT(*) FROM api_logs")->fetchColumn();
-$rangeApiCalls = (int)$pdo->query("SELECT COUNT(*) FROM api_logs WHERE created_at >= '{$startStr}' AND created_at <= '{$endStrFull}'")->fetchColumn();
+$stmt = $pdo->prepare("SELECT COUNT(*) FROM api_logs WHERE created_at >= ? AND created_at <= ?");
+$stmt->execute([$startStr, $endStrFull]);
+$rangeApiCalls = (int)$stmt->fetchColumn();
 $succeededApiCalls = (int)$pdo->query("SELECT COUNT(*) FROM api_logs WHERE status = 'success'")->fetchColumn();
 $failedApiCalls = (int)$pdo->query("SELECT COUNT(*) FROM api_logs WHERE status = 'error'")->fetchColumn();
-$rangeSucceededApi = (int)$pdo->query("SELECT COUNT(*) FROM api_logs WHERE status = 'success' AND created_at >= '{$startStr}' AND created_at <= '{$endStrFull}'")->fetchColumn();
+$stmt = $pdo->prepare("SELECT COUNT(*) FROM api_logs WHERE status = 'success' AND created_at >= ? AND created_at <= ?");
+$stmt->execute([$startStr, $endStrFull]);
+$rangeSucceededApi = (int)$stmt->fetchColumn();
 
 // 积分
 $totalCreditsConsumed = (float)$pdo->query("SELECT COALESCE(SUM(ABS(amount)),0) FROM balance_logs WHERE type = 'deduct'")->fetchColumn();
-$rangeCreditsConsumed = (float)$pdo->query("SELECT COALESCE(SUM(ABS(amount)),0) FROM balance_logs WHERE type = 'deduct' AND created_at >= '{$startStr}' AND created_at <= '{$endStrFull}'")->fetchColumn();
+$stmt = $pdo->prepare("SELECT COALESCE(SUM(ABS(amount)),0) FROM balance_logs WHERE type = 'deduct' AND created_at >= ? AND created_at <= ?");
+$stmt->execute([$startStr, $endStrFull]);
+$rangeCreditsConsumed = (float)$stmt->fetchColumn();
 $totalCreditBalance = (float)$pdo->query("SELECT COALESCE(SUM(balance),0) FROM users")->fetchColumn();
 $totalPurchasedCredits = (float)$pdo->query("SELECT COALESCE(SUM(amount),0) FROM balance_logs WHERE amount > 0")->fetchColumn();
 
@@ -72,16 +78,24 @@ $daily = [];
 $period = new DatePeriod($startDate, new DateInterval('P1D'), (clone $endDate)->modify('+1 day'));
 foreach ($period as $date) {
     $d = $date->format('Y-m-d');
+    $genStmt = $pdo->prepare("SELECT COUNT(*) FROM gen_images WHERE DATE(created_at) = ?");
+    $genStmt->execute([$d]);
+    $apiStmt = $pdo->prepare("SELECT COUNT(*) FROM api_logs WHERE DATE(created_at) = ?");
+    $apiStmt->execute([$d]);
+    $regStmt = $pdo->prepare("SELECT COUNT(*) FROM users WHERE DATE(created_at) = ?");
+    $regStmt->execute([$d]);
+    $credStmt = $pdo->prepare("SELECT COALESCE(SUM(ABS(amount)),0) FROM balance_logs WHERE type = 'deduct' AND DATE(created_at) = ?");
+    $credStmt->execute([$d]);
     $daily[] = [
         'date' => $d,
-        'generations'     => (int)$pdo->query("SELECT COUNT(*) FROM gen_images WHERE DATE(created_at) = '{$d}'")->fetchColumn(),
-        'apiCalls'        => (int)$pdo->query("SELECT COUNT(*) FROM api_logs WHERE DATE(created_at) = '{$d}'")->fetchColumn(),
-        'registrations'   => (int)$pdo->query("SELECT COUNT(*) FROM users WHERE DATE(created_at) = '{$d}'")->fetchColumn(),
-        'creditsConsumed' => (float)$pdo->query("SELECT COALESCE(SUM(ABS(amount)),0) FROM balance_logs WHERE type = 'deduct' AND DATE(created_at) = '{$d}'")->fetchColumn()
+        'generations'     => (int)$genStmt->fetchColumn(),
+        'apiCalls'        => (int)$apiStmt->fetchColumn(),
+        'registrations'   => (int)$regStmt->fetchColumn(),
+        'creditsConsumed' => (float)$credStmt->fetchColumn()
     ];
 }
 
-echo json_encode([
+json_out([
     'ok' => true,
     'range' => ['startDate' => $startStr, 'endDate' => $endStr],
     'traffic' => [
@@ -130,4 +144,4 @@ echo json_encode([
         ],
         'daily' => $daily
     ]
-], JSON_UNESCAPED_UNICODE);
+]);

@@ -3,19 +3,15 @@
  * Generation History API — 返回当前用户的生图历史
  */
 
-error_reporting(E_ALL);
-ini_set('display_errors', 0);
-
+require_once __DIR__ . '/_lib/helpers.php';
 require_once __DIR__ . '/../images20/db.php';
 if (session_status() === PHP_SESSION_NONE) session_start();
 
-header('Content-Type: application/json; charset=utf-8');
+cors_headers();
 
 $user = $_SESSION['user'] ?? null;
 if (!$user) {
-    http_response_code(401);
-    echo json_encode(['ok' => false, 'error' => 'AUTH_REQUIRED'], JSON_UNESCAPED_UNICODE);
-    exit;
+    json_out(['ok' => false, 'error' => 'AUTH_REQUIRED'], 401);
 }
 
 $uid = (int)$user['id'];
@@ -47,8 +43,8 @@ $history = array_map(function ($row) use ($username) {
     ];
 }, $rows);
 
-echo json_encode([
+json_out([
     'ok'      => true,
     'history' => $history,
     'total'   => count($history)
-], JSON_UNESCAPED_UNICODE);
+]);

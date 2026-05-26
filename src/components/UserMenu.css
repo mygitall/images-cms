@@ -1,0 +1,50 @@
+.userDropdown {
+  min-width: 292px;
+}
+
+.userSummaryAvatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1px solid rgba(103, 232, 249, 0.24);
+  object-fit: cover;
+}
+
+.userTrigger {
+  min-width: 58px;
+  padding: 0 9px 0 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: rgba(9, 15, 32, 0.68);
+  color: #dfeaff;
+  font-weight: 900;
+  white-space: nowrap;
+  box-shadow: 0 20px 70px rgba(0, 0, 0, 0.28);
+}
+
+.userTrigger:hover,
+.userTrigger.open {
+  border-color: rgba(103, 232, 249, 0.62);
+  background: rgba(103, 232, 249, 0.13);
+  color: #ffffff;
+}
+
+.userTrigger svg {
+  color: #9eeeff;
+}
+
+@media (max-width: 640px) {
+  .userDropdown {
+    min-width: min(292px, calc(100vw - 24px));
+  }
+
+  .userTrigger {
+    min-height: 38px;
+    padding-right: 9px;
+  }
+}

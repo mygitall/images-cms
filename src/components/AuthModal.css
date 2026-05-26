@@ -1,0 +1,117 @@
+.authDialog {
+  position: relative;
+  width: min(100%, 460px);
+  max-height: min(860px, 92vh);
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  overflow: auto;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(66, 230, 255, 0.15), transparent 38%),
+    linear-gradient(145deg, rgba(12, 18, 36, 0.98), rgba(6, 10, 21, 0.96));
+  box-shadow: 0 34px 120px rgba(0, 0, 0, 0.56);
+  touch-action: auto;
+  padding: 30px;
+}
+
+.authIcon {
+  display: grid;
+  width: 54px;
+  height: 54px;
+  border: 1px solid rgba(103, 232, 249, 0.24);
+  border-radius: 8px;
+  background: rgba(103, 232, 249, 0.12);
+  color: #9eeeff;
+  place-items: center;
+}
+
+.authDialog h2 {
+  margin: 18px 48px 10px 0;
+  color: #ffffff;
+  font-size: 30px;
+  line-height: 1.15;
+  letter-spacing: 0;
+}
+
+.authDialog p {
+  margin: 0;
+  color: #aebcd0;
+  line-height: 1.68;
+}
+
+.authForm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.authInput {
+  width: 100%;
+  height: 44px;
+  border: 1px solid rgba(120, 255, 185, 0.2);
+  border-radius: 8px;
+  padding: 0 12px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #eef5ff;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.authInput:focus {
+  border-color: rgba(66, 230, 255, 0.5);
+}
+
+.authInput::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.authSwitch {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  border: none;
+  padding: 8px;
+  background: none;
+  color: rgba(66, 230, 255, 0.7);
+  font-size: 13px;
+  cursor: pointer;
+  text-align: center;
+}
+
+.authSwitch:hover {
+  color: rgba(66, 230, 255, 1);
+}
+
+.authMessage {
+  margin-top: 14px;
+  border: 1px solid rgba(255, 198, 102, 0.28);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: rgba(255, 198, 102, 0.08);
+  color: #ffe1a8;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.authMessage.sent {
+  border-color: rgba(120, 255, 185, 0.28);
+  background: rgba(120, 255, 185, 0.08);
+  color: #c8ffb8;
+}
+
+.authMessage.error {
+  border-color: rgba(255, 112, 112, 0.26);
+  background: rgba(255, 112, 112, 0.08);
+  color: #ffc7c7;
+}
+
+@media (max-width: 640px) {
+  .authDialog {
+    max-height: calc(100vh - 20px);
+    padding: 20px 16px;
+  }
+}

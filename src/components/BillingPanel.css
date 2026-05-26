@@ -1,0 +1,233 @@
+.billingDialog {
+  position: relative;
+  width: min(1080px, 100%);
+  max-height: min(860px, 92vh);
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  overflow: auto;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(66, 230, 255, 0.15), transparent 38%),
+    linear-gradient(145deg, rgba(12, 18, 36, 0.98), rgba(6, 10, 21, 0.96));
+  box-shadow: 0 34px 120px rgba(0, 0, 0, 0.56);
+  touch-action: auto;
+}
+
+.billingHero h2 {
+  margin: 18px 48px 10px 0;
+  color: #ffffff;
+  font-size: clamp(30px, 4vw, 52px);
+  line-height: 1.05;
+  letter-spacing: 0;
+}
+
+.billingHero p {
+  max-width: 720px;
+  margin: 0;
+  color: #aebcd0;
+  line-height: 1.7;
+}
+
+.billingSummary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 22px 0;
+}
+
+.billingSummary div {
+  display: grid;
+  gap: 6px;
+  min-height: 108px;
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.billingSummary span {
+  color: #8eeeff;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.billingSummary strong {
+  color: #ffffff;
+  font-size: 26px;
+  line-height: 1.1;
+}
+
+.billingSummary em {
+  color: #93a4bc;
+  font-size: 12px;
+  font-style: normal;
+}
+
+.billingSections {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 20px;
+}
+
+.billingSections h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  color: #eaf3ff;
+  font-size: 16px;
+  letter-spacing: 0;
+}
+
+.billingCards {
+  display: grid;
+  gap: 10px;
+}
+
+.billingCard {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.billingCard.current {
+  border-color: rgba(120, 255, 185, 0.38);
+  background: rgba(120, 255, 185, 0.08);
+}
+
+.billingCard span {
+  color: #8eeeff;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.billingCard strong {
+  color: #ffffff;
+  font-size: 28px;
+  line-height: 1;
+}
+
+.billingCard strong small {
+  margin-left: 3px;
+  color: #aebcd0;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.billingCard p {
+  min-height: 44px;
+  margin: 0;
+  color: #aebcd0;
+  line-height: 1.55;
+}
+
+.billingCredits {
+  width: fit-content;
+  border-radius: 999px;
+  padding: 7px 10px;
+  background: rgba(103, 232, 249, 0.1);
+  color: #d8fbff;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.billingCard button {
+  min-height: 42px;
+  border: 1px solid rgba(120, 255, 185, 0.32);
+  border-radius: 8px;
+  padding: 0 12px;
+  background: linear-gradient(135deg, rgba(66, 230, 255, 0.22), rgba(120, 255, 185, 0.18));
+  color: #ffffff;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.billingCard button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.portalButton {
+  width: 100%;
+  margin-top: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 38px;
+  border: 1px solid rgba(120, 255, 185, 0.32);
+  border-radius: 8px;
+  padding: 0 12px;
+  background: rgba(120, 255, 185, 0.1);
+  color: #d8ffe4;
+  font-weight: 900;
+}
+
+.portalButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.billingState {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 14px 0;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.055);
+  color: #aebcd0;
+  font-weight: 800;
+}
+
+.billingState p {
+  margin: 0;
+}
+
+.billingState button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 38px;
+  border: 1px solid rgba(120, 255, 185, 0.32);
+  border-radius: 8px;
+  padding: 0 12px;
+  background: rgba(120, 255, 185, 0.1);
+  color: #d8ffe4;
+  font-weight: 900;
+}
+
+@media (max-width: 640px) {
+  .billingDialog {
+    max-height: calc(100vh - 20px);
+    padding: 20px 16px;
+  }
+
+  .billingSummary,
+  .billingSections {
+    grid-template-columns: 1fr;
+  }
+
+  .billingState {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .billingState button {
+    width: 100%;
+  }
+}

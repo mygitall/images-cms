@@ -6,29 +6,15 @@
  * DELETE /api/favorites?caseId= → 取消收藏
  */
 
-error_reporting(E_ALL);
-ini_set('display_errors', 0);
-
+require_once __DIR__ . '/_lib/helpers.php';
 require_once __DIR__ . '/../images20/db.php';
 if (session_status() === PHP_SESSION_NONE) session_start();
 
-header('Content-Type: application/json; charset=utf-8');
-header('Access-Control-Allow-Origin: ' . ($_SERVER['HTTP_ORIGIN'] ?? '*'));
-header('Access-Control-Allow-Credentials: true');
-header('Access-Control-Allow-Methods: GET, POST, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization');
-
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(204); exit; }
-
-function jsonOut($data, $code = 200) {
-    http_response_code($code);
-    echo json_encode($data, JSON_UNESCAPED_UNICODE);
-    exit;
-}
+cors_headers();
 
 $user = $_SESSION['user'] ?? null;
 if (!$user) {
-    jsonOut(['ok' => false, 'error' => 'AUTH_REQUIRED', 'loginRequired' => true], 401);
+    json_out(['ok' => false, 'error' => 'AUTH_REQUIRED', 'loginRequired' => true], 401);
 }
 
 $uid = (int)$user['id'];
@@ -48,7 +34,7 @@ if ($method === 'GET') {
         ];
     }, $rows);
 
-    jsonOut([
+    json_out([
         'ok' => true,
         'favorites' => $favorites,
         'caseIds' => array_column($favorites, 'caseId')
@@ -60,7 +46,7 @@ if ($method === 'POST') {
     $input = json_decode(file_get_contents('php://input'), true) ?? [];
     $caseId = (int)($input['caseId'] ?? $input['case_id'] ?? 0);
 
-    if ($caseId <= 0) jsonOut(['ok' => false, 'error' => 'INVALID_CASE'], 400);
+    if ($caseId <= 0) json_out(['ok' => false, 'error' => 'INVALID_CASE'], 400);
 
     // upsert（重复添加不报错）
     $pdo->prepare(
@@ -72,7 +58,7 @@ if ($method === 'POST') {
     $stmt->execute([$id]);
     $row = $stmt->fetch();
 
-    jsonOut([
+    json_out([
         'ok' => true,
         'favorite' => [
             'id' => (int)$row['id'],
@@ -86,12 +72,12 @@ if ($method === 'POST') {
 if ($method === 'DELETE') {
     $caseId = (int)($_GET['caseId'] ?? $_GET['case_id'] ?? 0);
 
-    if ($caseId <= 0) jsonOut(['ok' => false, 'error' => 'INVALID_CASE'], 400);
+    if ($caseId <= 0) json_out(['ok' => false, 'error' => 'INVALID_CASE'], 400);
 
     $stmt = $pdo->prepare('DELETE FROM case_favorites WHERE user_id = ? AND case_id = ?');
     $stmt->execute([$uid, $caseId]);
 
-    jsonOut(['ok' => true, 'caseId' => $caseId]);
+    json_out(['ok' => true, 'caseId' => $caseId]);
 }
 
-jsonOut(['ok' => false, 'error' => 'METHOD_NOT_ALLOWED'], 405);
+json_out(['ok' => false, 'error' => 'METHOD_NOT_ALLOWED'], 405);

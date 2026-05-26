@@ -1,0 +1,851 @@
+.adminDialog {
+  position: relative;
+  width: min(1180px, 100%);
+  max-height: min(860px, 92vh);
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  overflow: auto;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(66, 230, 255, 0.15), transparent 38%),
+    linear-gradient(145deg, rgba(12, 18, 36, 0.98), rgba(6, 10, 21, 0.96));
+  box-shadow: 0 34px 120px rgba(0, 0, 0, 0.56);
+  touch-action: auto;
+}
+
+.adminDialog h2 {
+  margin: 18px 48px 10px 0;
+  color: #ffffff;
+  font-size: 30px;
+  line-height: 1.15;
+  letter-spacing: 0;
+}
+
+.adminDialog p {
+  margin: 0;
+  color: #aebcd0;
+  line-height: 1.68;
+}
+
+.adminBlock.compact {
+  margin-bottom: 20px;
+}
+
+.adminHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.adminHeader.compact {
+  align-items: center;
+  margin: 18px 0 12px;
+}
+
+.adminHeader.compact h3 {
+  margin: 0;
+  color: #eaf3ff;
+  font-size: 18px;
+}
+
+.adminHeader h2 {
+  margin-top: 14px;
+}
+
+.adminHeaderActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.adminHeader button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+  border: 1px solid rgba(120, 255, 185, 0.34);
+  border-radius: 8px;
+  padding: 0 14px;
+  background: linear-gradient(135deg, rgba(66, 230, 255, 0.2), rgba(120, 255, 185, 0.16));
+  color: #ffffff;
+  font-weight: 900;
+}
+
+.adminHeader button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.adminDashboard,
+.adminBlock {
+  display: grid;
+  gap: 14px;
+}
+
+.adminDashboard {
+  margin-bottom: 18px;
+}
+
+.adminBlock {
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 8px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.adminBlock h3,
+.adminPanelCard h4 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: #eaf3ff;
+  letter-spacing: 0;
+}
+
+.adminBlock h3 {
+  font-size: 16px;
+}
+
+.adminPanelCard h4 {
+  font-size: 14px;
+}
+
+.adminNotice {
+  margin: 0;
+  border: 1px solid rgba(255, 198, 102, 0.22);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: rgba(255, 198, 102, 0.08);
+  color: #ffe1a8;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.adminRangeSummary {
+  margin: -2px 0 0;
+  color: #aebcd0;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.adminRangeSummary strong {
+  color: #ffffff;
+}
+
+.adminMetricGrid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.adminMetricCard {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  min-height: 94px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 12px;
+  background: rgba(3, 7, 15, 0.45);
+}
+
+.adminMetricIcon {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: rgba(103, 232, 249, 0.11);
+  color: #9eeeff;
+  place-items: center;
+}
+
+.adminMetricCard div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.adminMetricCard span:not(.adminMetricIcon) {
+  color: #8eeeff;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.adminMetricCard strong {
+  color: #ffffff;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.adminMetricCard em {
+  color: #93a4bc;
+  font-size: 12px;
+  font-style: normal;
+}
+
+.adminChartGrid {
+  display: grid;
+  gap: 10px;
+}
+
+.adminTrafficGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.adminPanelCard {
+  display: grid;
+  gap: 12px;
+  min-height: 210px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 12px;
+  background: rgba(3, 7, 15, 0.45);
+}
+
+.adminPanelCard.chart {
+  min-height: 334px;
+}
+
+.adminTrendChart {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.adminChartLegend {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.adminChartLegend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #aebcd0;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.adminChartLegend i {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+}
+
+.adminTrendChart svg {
+  width: 100%;
+  height: auto;
+  min-height: 260px;
+  overflow: visible;
+}
+
+.adminTrendChart line {
+  stroke: rgba(255, 255, 255, 0.1);
+  stroke-width: 1;
+}
+
+.adminTrendChart text {
+  fill: #93a4bc;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.adminChartDate {
+  fill: #aebcd0;
+}
+
+.adminChartArea {
+  pointer-events: none;
+}
+
+.adminChartLine {
+  fill: none;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.adminChartActive > line {
+  stroke: rgba(255, 255, 255, 0.28);
+  stroke-dasharray: 4 6;
+}
+
+.adminChartActive circle {
+  stroke: #07101f;
+  stroke-width: 2;
+}
+
+.adminChartTooltip rect {
+  fill: rgba(3, 7, 15, 0.92);
+  stroke: rgba(255, 255, 255, 0.16);
+}
+
+.adminChartTooltip text {
+  fill: #ffffff;
+  font-size: 12px;
+}
+
+.adminRankList {
+  display: grid;
+  gap: 8px;
+}
+
+.adminRankItem {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  min-height: 40px;
+  border-radius: 7px;
+  padding: 7px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.adminRankItem > span {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: rgba(103, 232, 249, 0.12);
+  color: #9eeeff;
+  font-size: 11px;
+  font-weight: 900;
+  place-items: center;
+}
+
+.adminRankItem div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.adminRankItem strong {
+  overflow: hidden;
+  color: #eaf3ff;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.adminRankItem em {
+  color: #93a4bc;
+  font-size: 11px;
+  font-style: normal;
+}
+
+.adminRankItem b {
+  color: #ffffff;
+  font-size: 12px;
+}
+
+.adminTableWrap {
+  overflow: auto;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+}
+
+.adminTable {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 720px;
+  color: #dfeaff;
+}
+
+.adminTable th,
+.adminTable td {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 12px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.adminTable th {
+  background: rgba(255, 255, 255, 0.055);
+  color: #9eeeff;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.adminTable tr:last-child td {
+  border-bottom: 0;
+}
+
+.adminUserCell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.adminUserCell img,
+.adminUserCell svg {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+}
+
+.adminUserCell img {
+  object-fit: cover;
+}
+
+.adminUserCell div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.adminUserCell strong,
+.adminUserCell span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.adminUserCell span {
+  color: #8d9bb0;
+  font-size: 12px;
+}
+
+.adminState {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  color: #aebcd0;
+  font-weight: 800;
+}
+
+.adminAdjustForm {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) 120px minmax(180px, 1.2fr) auto;
+  gap: 10px;
+  align-items: end;
+  margin: 0 0 16px;
+  border: 1px solid rgba(103, 232, 249, 0.14);
+  border-radius: 8px;
+  padding: 12px;
+  background: rgba(103, 232, 249, 0.06);
+}
+
+.adminAdjustForm strong {
+  color: #ffffff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.adminAdjustForm label {
+  display: grid;
+  gap: 6px;
+  color: #9eeeff;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.adminAdjustForm input {
+  min-height: 38px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  outline: 0;
+  padding: 0 10px;
+  background: rgba(3, 7, 15, 0.72);
+  color: #ffffff;
+}
+
+.adminAdjustForm button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 38px;
+  border: 1px solid rgba(120, 255, 185, 0.32);
+  border-radius: 8px;
+  padding: 0 12px;
+  background: rgba(120, 255, 185, 0.1);
+  color: #d8ffe4;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.adminAdjustForm button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.tableAction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 34px;
+  border: 1px solid rgba(120, 255, 185, 0.32);
+  border-radius: 8px;
+  padding: 0 12px;
+  background: rgba(120, 255, 185, 0.1);
+  color: #eaf3ff;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.compactAction {
+  min-height: 30px;
+  padding: 0 9px;
+}
+
+.adminRangeToggle {
+  display: inline-flex;
+  gap: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 8px;
+  padding: 4px;
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.adminRangeToggle button {
+  min-height: 34px;
+  border: 0;
+  border-radius: 7px;
+  padding: 0 10px;
+  background: transparent;
+  color: #aebcd0;
+  box-shadow: none;
+}
+
+.adminRangeToggle button.active,
+.adminRangeToggle button:hover {
+  background: rgba(103, 232, 249, 0.14);
+  color: #ffffff;
+}
+
+.adminCustomRange {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 8px;
+  padding: 8px;
+  background: rgba(3, 7, 15, 0.38);
+}
+
+.adminCustomRange label {
+  display: grid;
+  gap: 5px;
+}
+
+.adminCustomRange span {
+  color: #93a4bc;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.adminCustomRange input {
+  width: 142px;
+  min-height: 38px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  padding: 0 9px;
+  background: rgba(3, 7, 15, 0.72);
+  color: #ffffff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+/* API Config Styles */
+.apiSwitchBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.apiSwitchBtn {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 120px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #eef5ff;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: border-color 0.15s;
+}
+
+.apiSwitchBtn:hover { border-color: rgba(66, 230, 255, 0.4); }
+
+.apiSwitchBtn.active {
+  border-color: rgba(120, 255, 185, 0.45);
+  background: rgba(120, 255, 185, 0.08);
+}
+
+.apiSwitchBtn.busy { opacity: 0.5; pointer-events: none; }
+
+.apiSwitchBtn strong { font-size: 13px; font-weight: 700; }
+
+.apiSwitchBtn span {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.apiDot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-top: 4px;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.apiDot.ok { background: #4ade80; }
+.apiDot.busy { background: #facc15; }
+.apiDot.timeout { background: #f87171; }
+
+.apiStatusTag {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-left: 8px;
+}
+
+.apiProfileCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.apiProfileCard .apiSwitchBtn {
+  border-radius: 8px 8px 0 0;
+}
+
+.apiProfileCard.active .apiSwitchBtn {
+  border-radius: 8px 8px 0 0;
+}
+
+.apiProfileActions {
+  display: flex;
+  gap: 2px;
+  padding: 4px 8px;
+  background: rgba(0,0,0,0.15);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+}
+
+.apiProfileCard.active .apiProfileActions {
+  border-color: rgba(120,255,185,0.2);
+  background: rgba(120,255,185,0.04);
+}
+
+.apiEditBtn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 8px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: rgba(255,255,255,0.45);
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.apiEditBtn:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.8); }
+
+.apiDeleteBtn:hover { color: #f87171; }
+
+.apiAddBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 54px;
+  border: 1px dashed rgba(255,255,255,0.14);
+  border-radius: 8px;
+  padding: 10px 14px;
+  background: transparent;
+  color: rgba(255,255,255,0.4);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.apiAddBtn:hover { border-color: rgba(66,230,255,0.35); color: rgba(255,255,255,0.7); }
+
+.apiEditForm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid rgba(66,230,255,0.2);
+  border-radius: 8px;
+  background: rgba(66,230,255,0.04);
+}
+
+.apiEditForm strong {
+  font-size: 12px;
+  color: rgba(66,230,255,0.8);
+  min-width: 60px;
+}
+
+.apiEditLabel {
+  font-size: 11px;
+  color: rgba(255,255,255,0.35);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-right: -6px;
+}
+
+.apiEditInput {
+  width: auto !important;
+  flex: 1 1 160px;
+  min-width: 100px;
+  height: 34px !important;
+  font-size: 12px !important;
+}
+
+.apiEditActions {
+  display: flex;
+  gap: 8px;
+}
+
+.apiEditActions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 32px;
+  border: 1px solid rgba(255,255,255,0.16);
+  border-radius: 6px;
+  padding: 0 12px;
+  background: rgba(255,255,255,0.06);
+  color: #eef5ff;
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.apiEditActions button:hover { background: rgba(255,255,255,0.1); }
+.apiEditActions button:first-child { border-color: rgba(120,255,185,0.3); background: rgba(120,255,185,0.1); }
+
+.apiModelsBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 8px 12px;
+  background: rgba(66,230,255,0.04);
+  border: 1px solid rgba(66,230,255,0.1);
+  border-radius: 6px;
+}
+
+.apiModelsBar span {
+  font-size: 11px;
+  color: rgba(255,255,255,0.4);
+}
+
+.apiModelsBar code {
+  display: inline-block;
+  padding: 2px 8px;
+  border: 1px solid rgba(120,255,185,0.18);
+  border-radius: 4px;
+  background: rgba(120,255,185,0.06);
+  color: rgba(120,255,185,0.7);
+  font-size: 11px;
+  font-family: monospace;
+}
+
+@media (max-width: 900px) {
+  .adminMetricGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .adminCustomRange {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .adminCustomRange label {
+    flex: 1 1 160px;
+  }
+
+  .adminCustomRange input {
+    width: 100%;
+  }
+
+  .adminTrafficGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .adminDialog {
+    max-height: calc(100vh - 20px);
+    padding: 20px 16px;
+  }
+
+  .adminHeader {
+    flex-direction: column;
+  }
+
+  .adminHeaderActions {
+    justify-content: stretch;
+    width: 100%;
+  }
+
+  .adminRangeToggle {
+    flex: 1 1 auto;
+  }
+
+  .adminRangeToggle button {
+    flex: 1;
+  }
+
+  .adminCustomRange {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .adminTrendChart svg {
+    min-height: 224px;
+  }
+
+  .adminMetricGrid,
+  .adminTrafficGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .adminHeader button {
+    width: 100%;
+  }
+
+  .adminAdjustForm {
+    grid-template-columns: 1fr;
+  }
+}

@@ -4,31 +4,18 @@
  * 完全共用 images20 的用户余额、gen_images 表、API Key
  */
 
-error_reporting(E_ALL);
-ini_set('display_errors', 0);
-
+require_once __DIR__ . '/_lib/helpers.php';
 require_once __DIR__ . '/../images20/db.php';
 if (session_status() === PHP_SESSION_NONE) session_start();
 
-header('Content-Type: application/json; charset=utf-8');
-header('Access-Control-Allow-Origin: ' . ($_SERVER['HTTP_ORIGIN'] ?? '*'));
-header('Access-Control-Allow-Credentials: true');
-header('Access-Control-Allow-Headers: Content-Type');
-
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(204); exit; }
+cors_headers();
 
 $maxPromptLength = 6000;
-
-function jsonOut($data, $code = 200) {
-    http_response_code($code);
-    echo json_encode($data, JSON_UNESCAPED_UNICODE);
-    exit;
-}
 
 // ---- 登录检查 ----
 $user = $_SESSION['user'] ?? null;
 if (!$user) {
-    jsonOut(['ok' => false, 'error' => 'AUTH_REQUIRED', 'loginRequired' => true], 401);
+    json_out(['ok' => false, 'error' => 'AUTH_REQUIRED', 'loginRequired' => true], 401);
 }
 
 // ---- 读取用户数据 ----
@@ -36,7 +23,7 @@ $uid = (int)$user['id'];
 $stmt = $pdo->prepare('SELECT * FROM users WHERE id = ?');
 $stmt->execute([$uid]);
 $row = $stmt->fetch();
-if (!$row) jsonOut(['ok' => false, 'error' => 'USER_NOT_FOUND'], 404);
+if (!$row) json_out(['ok' => false, 'error' => 'USER_NOT_FOUND'], 404);
 
 $balance = (float)$row['balance'];
 $role = $row['role'] ?? 'user';
@@ -44,7 +31,9 @@ $isAdmin = ($role === 'admin');
 $freeUsed = false; // 检查是否有过免费生图
 
 // 查是否已使用免费额度
-$freeCheck = $pdo->query("SELECT COUNT(*) FROM gen_images WHERE user_id = {$uid}")->fetchColumn();
+$freeCheck = $pdo->prepare("SELECT COUNT(*) FROM gen_images WHERE user_id = ?");
+$freeCheck->execute([$uid]);
+$freeCheck = $freeCheck->fetchColumn();
 if ($freeCheck > 0) $freeUsed = true;
 
 // ---- 读取请求 ----
@@ -53,18 +42,18 @@ $prompt = trim($input['prompt'] ?? '');
 $caseId = (int)($input['caseId'] ?? 0);
 
 if (!$prompt || strlen($prompt) > $maxPromptLength || $caseId <= 0) {
-    jsonOut(['ok' => false, 'error' => 'INVALID_PROMPT'], 400);
+    json_out(['ok' => false, 'error' => 'INVALID_PROMPT'], 400);
 }
 
 // ---- 余额检查 ----
 $creditAmount = 0;
 if ($isAdmin) {
     // 管理员每次消耗 1 积分
-    if ($balance < 1) jsonOut(['ok' => false, 'error' => 'CREDITS_REQUIRED'], 402);
+    if ($balance < 1) json_out(['ok' => false, 'error' => 'CREDITS_REQUIRED'], 402);
     $creditAmount = 1;
 } elseif ($freeUsed) {
     // 已用免费额度，消耗积分
-    if ($balance < 1) jsonOut(['ok' => false, 'error' => 'CREDITS_REQUIRED'], 402);
+    if ($balance < 1) json_out(['ok' => false, 'error' => 'CREDITS_REQUIRED'], 402);
     $creditAmount = 1;
 }
 // else: 免费生成，不扣积分
@@ -89,7 +78,7 @@ function cleanBaseUrl($url) {
 }
 
 if (empty($orderedProfiles)) {
-    jsonOut(['ok' => false, 'error' => 'SERVER_NOT_CONFIGURED'], 500);
+    json_out(['ok' => false, 'error' => 'SERVER_NOT_CONFIGURED'], 500);
 }
 
 // ---- 调用生图 API（逐个尝试 profile） ----
@@ -161,7 +150,7 @@ try {
 // ---- 处理响应 ----
 if ($curlError || !$response) {
     $reason = $curlError ?: '无响应';
-    jsonOut(['ok' => false, 'error' => 'UPSTREAM_BUSY', 'message' => $reason], 502);
+    json_out(['ok' => false, 'error' => 'UPSTREAM_BUSY', 'message' => $reason], 502);
 }
 
 $payload = json_decode($response, true);
@@ -170,7 +159,7 @@ $imageUrl = $payload['data'][0]['url'] ?? '';
 
 if ($httpCode === 401 || $httpCode === 403) {
     $errorMsg = $payload['error']['message'] ?? '无效的 API Key';
-    jsonOut(['ok' => false, 'error' => 'API_KEY_INVALID', 'message' => $errorMsg], 502);
+    json_out(['ok' => false, 'error' => 'API_KEY_INVALID', 'message' => $errorMsg], 502);
 }
 
 // 如果 API 返回 URL 而不是 base64，下载图片并转 base64
@@ -191,7 +180,7 @@ if (!$b64 && $imageUrl) {
 
 if ($httpCode < 200 || $httpCode >= 300 || !$b64) {
     $errorMsg = $payload['error']['message'] ?? $payload['message'] ?? "API returned {$httpCode}";
-    jsonOut(['ok' => false, 'error' => 'GENERATION_FAILED', 'message' => $errorMsg], 502);
+    json_out(['ok' => false, 'error' => 'GENERATION_FAILED', 'message' => $errorMsg], 502);
 }
 
 // ---- 保存图片文件（按用户名分目录） ----
@@ -237,14 +226,22 @@ $updatedUser = [
     'membership' => ['isActive' => false, 'planId' => '', 'status' => 'inactive', 'currentPeriodEnd' => null],
     'usage' => [
         'totalGenerations' => (int)$freeCheck + 1,
-        'totalGenerationCredits' => (float)($pdo->query("SELECT COALESCE(SUM(ABS(amount)),0) FROM balance_logs WHERE user_id = {$uid} AND type = 'deduct'")->fetchColumn()),
+        'totalGenerationCredits' => (function() use ($pdo, $uid) {
+            $stmt = $pdo->prepare("SELECT COALESCE(SUM(ABS(amount)),0) FROM balance_logs WHERE user_id = ? AND type = 'deduct'");
+            $stmt->execute([$uid]);
+            return (float)$stmt->fetchColumn();
+        })(),
         'purchasedCredits' => 0,
-        'apiCalls' => (int)$pdo->query("SELECT COUNT(*) FROM api_logs WHERE user_id = {$uid}")->fetchColumn()
+        'apiCalls' => (function() use ($pdo, $uid) {
+            $stmt = $pdo->prepare("SELECT COUNT(*) FROM api_logs WHERE user_id = ?");
+            $stmt->execute([$uid]);
+            return (int)$stmt->fetchColumn();
+        })(),
     ],
     'recentTransactions' => []
 ];
 
-jsonOut([
+json_out([
     'ok'    => true,
     'image' => $image,
     'user'  => $updatedUser

@@ -5,19 +5,15 @@
  * POST → 切换 active profile
  */
 
-error_reporting(E_ALL);
-ini_set('display_errors', 0);
-
+require_once __DIR__ . '/../_lib/helpers.php';
 require_once __DIR__ . '/../../images20/db.php';
 if (session_status() === PHP_SESSION_NONE) session_start();
 
-header('Content-Type: application/json; charset=utf-8');
+cors_headers();
 
 $user = $_SESSION['user'] ?? null;
 if (!$user || ($user['role'] ?? '') !== 'admin') {
-    http_response_code(403);
-    echo json_encode(['ok' => false, 'error' => 'FORBIDDEN'], JSON_UNESCAPED_UNICODE);
-    exit;
+    json_out(['ok' => false, 'error' => 'FORBIDDEN'], 403);
 }
 
 $configFile = __DIR__ . '/../../images20/config.php';
@@ -83,14 +79,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         }
     }
 
-    echo json_encode([
+    json_out([
         'ok'        => true,
         'active'    => $active,
         'apiStatus' => $apiStatus,
         'models'    => $models,
         'profiles'  => $profiles
-    ], JSON_UNESCAPED_UNICODE);
-    exit;
+    ]);
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -102,9 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($input['editProfile'])) {
         $profileName = trim($input['editProfile']);
         if (!isset($config['profiles'][$profileName])) {
-            http_response_code(400);
-            echo json_encode(['ok' => false, 'error' => 'Profile 不存在: ' . $profileName], JSON_UNESCAPED_UNICODE);
-            exit;
+            json_out(['ok' => false, 'error' => 'Profile 不存在: ' . $profileName], 400);
         }
         if (isset($input['api_key']) && $input['api_key'] !== '') {
             $config['profiles'][$profileName]['api_key'] = trim($input['api_key']);
@@ -114,8 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $php = "<?php\nreturn " . var_export($config, true) . ";\n";
         file_put_contents($configFile, $php);
-        echo json_encode(['ok' => true], JSON_UNESCAPED_UNICODE);
-        exit;
+        json_out(['ok' => true]);
     }
 
     // 新增 profile
@@ -124,61 +116,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $apiKey = trim($input['api_key'] ?? '');
         $baseUrl = trim($input['base_url'] ?? '');
         if (!$profileName || !$apiKey || !$baseUrl) {
-            http_response_code(400);
-            echo json_encode(['ok' => false, 'error' => '名称/Key/URL 均不能为空'], JSON_UNESCAPED_UNICODE);
-            exit;
+            json_out(['ok' => false, 'error' => '名称/Key/URL 均不能为空'], 400);
         }
         if (isset($config['profiles'][$profileName])) {
-            http_response_code(409);
-            echo json_encode(['ok' => false, 'error' => 'Profile 已存在: ' . $profileName], JSON_UNESCAPED_UNICODE);
-            exit;
+            json_out(['ok' => false, 'error' => 'Profile 已存在: ' . $profileName], 409);
         }
         $config['profiles'][$profileName] = ['api_key' => $apiKey, 'base_url' => $baseUrl];
         $php = "<?php\nreturn " . var_export($config, true) . ";\n";
         file_put_contents($configFile, $php);
-        echo json_encode(['ok' => true, 'added' => $profileName], JSON_UNESCAPED_UNICODE);
-        exit;
+        json_out(['ok' => true, 'added' => $profileName]);
     }
 
     // 删除 profile
     if (isset($input['deleteProfile'])) {
         $profileName = trim($input['deleteProfile']);
         if ($profileName === 'default') {
-            http_response_code(400);
-            echo json_encode(['ok' => false, 'error' => '不能删除 default profile'], JSON_UNESCAPED_UNICODE);
-            exit;
+            json_out(['ok' => false, 'error' => '不能删除 default profile'], 400);
         }
         if (!isset($config['profiles'][$profileName])) {
-            http_response_code(404);
-            echo json_encode(['ok' => false, 'error' => 'Profile 不存在'], JSON_UNESCAPED_UNICODE);
-            exit;
+            json_out(['ok' => false, 'error' => 'Profile 不存在'], 404);
         }
         unset($config['profiles'][$profileName]);
         if ($config['active'] === $profileName) $config['active'] = 'default';
         $php = "<?php\nreturn " . var_export($config, true) . ";\n";
         file_put_contents($configFile, $php);
-        echo json_encode(['ok' => true, 'deleted' => $profileName], JSON_UNESCAPED_UNICODE);
-        exit;
+        json_out(['ok' => true, 'deleted' => $profileName]);
     }
 
     // 切换 active
     $newActive = trim($input['active'] ?? '');
     if (!$newActive) {
-        http_response_code(400);
-        echo json_encode(['ok' => false, 'error' => '缺少 profile 名称'], JSON_UNESCAPED_UNICODE);
-        exit;
+        json_out(['ok' => false, 'error' => '缺少 profile 名称'], 400);
     }
     if (!isset($config['profiles'][$newActive])) {
-        http_response_code(400);
-        echo json_encode(['ok' => false, 'error' => 'Profile 不存在: ' . $newActive], JSON_UNESCAPED_UNICODE);
-        exit;
+        json_out(['ok' => false, 'error' => 'Profile 不存在: ' . $newActive], 400);
     }
     $config['active'] = $newActive;
     $php = "<?php\nreturn " . var_export($config, true) . ";\n";
     file_put_contents($configFile, $php);
-    echo json_encode(['ok' => true, 'active' => $newActive], JSON_UNESCAPED_UNICODE);
-    exit;
+    json_out(['ok' => true, 'active' => $newActive]);
 }
 
-http_response_code(405);
-echo json_encode(['ok' => false, 'error' => 'METHOD_NOT_ALLOWED'], JSON_UNESCAPED_UNICODE);
+json_out(['ok' => false, 'error' => 'METHOD_NOT_ALLOWED'], 405);

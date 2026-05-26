@@ -4,11 +4,11 @@
  * 登录 / 注册 / 登出 / 当前用户
  */
 
-error_reporting(E_ALL);
-ini_set('display_errors', 0);
-
+require_once __DIR__ . '/_lib/helpers.php';
 require_once __DIR__ . '/../images20/db.php';
 if (session_status() === PHP_SESSION_NONE) session_start();
+
+cors_headers();
 
 $action = $_GET['action'] ?? '';
 
@@ -19,8 +19,7 @@ if (in_array($action, ['login', 'register'])) {
     $now = time();
     $attempts = @json_decode(@file_get_contents($cacheFile), true) ?: ['ts' => 0, 'count' => 0];
     if ($now - $attempts['ts'] < 30 && $attempts['count'] >= 5) {
-        http_response_code(429);
-        die(json_encode(['error' => '操作太频繁，请30秒后再试'], JSON_UNESCAPED_UNICODE));
+        json_out(['error' => '操作太频繁，请30秒后再试'], 429);
     }
     if ($now - $attempts['ts'] >= 30) { $attempts = ['ts' => $now, 'count' => 1]; }
     else { $attempts['count']++; }
@@ -29,44 +28,30 @@ if (in_array($action, ['login', 'register'])) {
 
 $input = json_decode(file_get_contents('php://input'), true) ?? [];
 
-header('Content-Type: application/json; charset=utf-8');
-header('Access-Control-Allow-Origin: ' . ($_SERVER['HTTP_ORIGIN'] ?? '*'));
-header('Access-Control-Allow-Credentials: true');
-header('Access-Control-Allow-Methods: GET, POST, PATCH, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization');
-
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(204); exit; }
-
-function jsonOut($data, $code = 200) {
-    http_response_code($code);
-    echo json_encode($data, JSON_UNESCAPED_UNICODE);
-    exit;
-}
-
 // ========== 注册 ==========
 if ($action === 'register') {
     $username = trim($input['username'] ?? '');
     $password = $input['password'] ?? '';
 
-    if (strlen($username) < 2 || strlen($username) > 50) jsonOut(['error' => '用户名 2-50 位'], 400);
-    if (strlen($password) < 4) jsonOut(['error' => '密码至少 4 位'], 400);
+    if (strlen($username) < 2 || strlen($username) > 50) json_out(['error' => '用户名 2-50 位'], 400);
+    if (strlen($password) < 4) json_out(['error' => '密码至少 4 位'], 400);
 
     // 检查是否禁止注册
     $config = @(require __DIR__ . '/../images20/config.php');
     $features = $config['features'] ?? [];
     if (!empty($features['disable_register'])) {
-        jsonOut(['error' => '暂不开放注册'], 403);
+        json_out(['error' => '暂不开放注册'], 403);
     }
 
     $stmt = $pdo->prepare('SELECT id FROM users WHERE username = ?');
     $stmt->execute([$username]);
-    if ($stmt->fetch()) jsonOut(['error' => '用户名已存在'], 409);
+    if ($stmt->fetch()) json_out(['error' => '用户名已存在'], 409);
 
     $hash = password_hash($password, PASSWORD_BCRYPT);
     $pdo->prepare('INSERT INTO users (username, password) VALUES (?, ?)')->execute([$username, $hash]);
 
     $_SESSION['user'] = ['id' => (int)$pdo->lastInsertId(), 'username' => $username, 'role' => 'user'];
-    jsonOut(buildUserResponse($_SESSION['user']));
+    json_out(buildUserResponse($_SESSION['user']));
 }
 
 // ========== 登录 ==========
@@ -78,29 +63,29 @@ if ($action === 'login') {
     $stmt->execute([$username]);
     $user = $stmt->fetch();
 
-    if (!$user) jsonOut(['error' => '用户名不存在: ' . $username], 401);
-    if (!password_verify($password, $user['password'])) jsonOut(['error' => '密码错误'], 401);
+    if (!$user) json_out(['error' => '用户名不存在: ' . $username], 401);
+    if (!password_verify($password, $user['password'])) json_out(['error' => '密码错误'], 401);
 
     $_SESSION['user'] = ['id' => (int)$user['id'], 'username' => $user['username'], 'role' => $user['role'] ?? 'user'];
-    jsonOut(buildUserResponse($_SESSION['user']));
+    json_out(buildUserResponse($_SESSION['user']));
 }
 
 // ========== 登出 ==========
 if ($action === 'logout') {
     unset($_SESSION['user']);
     session_destroy();
-    jsonOut(['ok' => true]);
+    json_out(['ok' => true]);
 }
 
 // ========== 当前用户（/api/me 兼容） ==========
 // 支持两种调用方式：?action=me 或 /api/me.php 独立文件
 if ($action === 'me' || $action === '') {
     $user = $_SESSION['user'] ?? null;
-    if (!$user) jsonOut(['ok' => true, 'user' => null]);
-    jsonOut(['ok' => true, 'user' => buildUserResponse($user)]);
+    if (!$user) json_out(['ok' => true, 'user' => null]);
+    json_out(['ok' => true, 'user' => buildUserResponse($user)]);
 }
 
-jsonOut(['error' => '未知 action: ' . $action], 400);
+json_out(['error' => '未知 action: ' . $action], 400);
 
 // ========== 构建用户响应（与 GPT-Image2 前端格式一致） ==========
 function buildUserResponse($user) {

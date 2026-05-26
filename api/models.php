@@ -3,16 +3,13 @@
  * Public Models API — 返回当前活跃 API 的可用模型列表
  */
 
-error_reporting(E_ALL);
-ini_set('display_errors', 0);
+require_once __DIR__ . '/_lib/helpers.php';
 
-header('Content-Type: application/json; charset=utf-8');
-header('Access-Control-Allow-Origin: ' . ($_SERVER['HTTP_ORIGIN'] ?? '*'));
+cors_headers();
 
 $configFile = __DIR__ . '/../images20/config.php';
 if (!file_exists($configFile)) {
-    echo json_encode(['ok' => true, 'models' => []]);
-    exit;
+    json_out(['ok' => true, 'models' => []]);
 }
 
 $config = require $configFile;
@@ -43,4 +40,4 @@ if ($apiKey && $baseUrl) {
     }
 }
 
-echo json_encode(['ok' => true, 'models' => $models], JSON_UNESCAPED_UNICODE);
+json_out(['ok' => true, 'models' => $models]);
