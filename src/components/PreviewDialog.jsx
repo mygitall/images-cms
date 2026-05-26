@@ -168,9 +168,6 @@ function PreviewDialog({
 
   function toggleReferenceMode() {
     if (!referenceMode) {
-      if (!isTemplate && image && referenceImages.length === 0) {
-        setReferenceImages([image]);
-      }
       setReferenceMode(true);
     } else {
       setReferenceMode(false);
@@ -218,6 +215,11 @@ function PreviewDialog({
         if (payload.error === 'AUTH_REQUIRED' || payload.loginRequired) {
           onAuthRequired();
           setGenerationState({ status: 'idle', image: generatedImage, message: '' });
+          return;
+        }
+        if (payload.error === 'CREDITS_REQUIRED') {
+          onBillingRequired();
+          setGenerationState({ status: 'idle', image: generatedImage, message: t.creditsRequired });
           return;
         }
         if (payload.error === 'INVALID_PROMPT' && (isTemplate || isFree)) {

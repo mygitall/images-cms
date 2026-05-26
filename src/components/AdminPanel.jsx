@@ -144,11 +144,12 @@ function AdminPanel({ open, language, session, casesById, onClose, onOpenCase })
   }
 
   function handleCustomApply() {
-    if (range !== 'custom') {
-      setRange('custom');
-      return;
-    }
-    loadAdminData('custom', customStart, customEnd);
+    const start = customStart || dateInputValue(30);
+    const end = customEnd || dateInputValue(0);
+    setRange('custom');
+    setCustomStart(start);
+    setCustomEnd(end);
+    loadAdminData('custom', start, end);
   }
 
   async function handleAdjustCredits(event) {
@@ -505,7 +506,7 @@ function AdminPanel({ open, language, session, casesById, onClose, onOpenCase })
                           className="tableAction compactAction"
                           type="button"
                           onClick={() => {
-                            const caseItem = casesById?.get(user.usage.lastGenerationCaseId);
+                            const caseItem = casesById?.get(Number(user.usage.lastGenerationCaseId));
                             if (caseItem) onOpenCase?.(caseItem);
                           }}
                           disabled={!casesById?.has(user.usage.lastGenerationCaseId)}

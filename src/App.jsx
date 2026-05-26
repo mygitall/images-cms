@@ -216,7 +216,7 @@ function App() {
     const nextSearch = params.toString();
     const nextUrl = `${window.location.pathname}${nextSearch ? `?${nextSearch}` : ''}${window.location.hash}`;
     window.history.replaceState({}, '', nextUrl);
-  }, [t.billingCancelled, t.billingSuccess]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const latestCases = useMemo(() => {
     if (!siteData) return [];

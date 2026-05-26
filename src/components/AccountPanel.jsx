@@ -153,7 +153,7 @@ function AccountPanel({
               </div>
               <div>
                 <span>{t.currentPlan}</span>
-                <strong>{formatMembershipStatus(profile?.membership, language)}</strong>
+                <strong>{profile?.membership?.planId || formatMembershipStatus(profile?.membership, language)}</strong>
               </div>
               <div>
                 <span>{t.totalGenerations}</span>

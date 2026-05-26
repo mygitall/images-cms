@@ -39,7 +39,7 @@ function BillingPanel({
       const headers = getAuthHeaders(session);
       const [plansResponse, historyResponse] = await Promise.all([
         fetch('/api/billing/plans', { headers }),
-        session?.access_token
+        (session?.access_token || session?.phpSession)
           ? fetch('/api/billing/history', { headers })
           : Promise.resolve(null)
       ]);

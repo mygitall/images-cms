@@ -161,6 +161,9 @@ if ($curlError || !$response) {
 }
 
 $payload = json_decode($response, true);
+if (!is_array($payload)) {
+    json_out(['ok' => false, 'error' => 'GENERATION_FAILED', 'message' => "API returned non-JSON response (HTTP {$httpCode})"], 502);
+}
 $b64 = $payload['data'][0]['b64_json'] ?? '';
 $imageUrl = $payload['data'][0]['url'] ?? '';
 
@@ -190,15 +193,11 @@ if ($httpCode < 200 || $httpCode >= 300 || !$b64) {
     json_out(['ok' => false, 'error' => 'GENERATION_FAILED', 'message' => $errorMsg], 502);
 }
 
-// ---- 保存图片文件（按用户名分目录） ----
+// ---- 扣积分 + 记录生图 ----
 $username = $row['username'];
 $uploadsDir = __DIR__ . '/../uploads/' . $username;
-if (!is_dir($uploadsDir)) mkdir($uploadsDir, 0755, true);
 $imageFilename = 'gen_' . time() . '_' . $uid . '.jpg';
-$imageData = base64_decode($b64);
-file_put_contents($uploadsDir . '/' . $imageFilename, $imageData);
 
-// ---- 扣积分 + 记录生图 ----
 $pdo->beginTransaction();
 try {
     if ($creditAmount > 0) {
@@ -214,6 +213,11 @@ try {
         ->execute([$uid, $imageFilename, $prompt, 'gpt-image-2', '1:1', '1k']);
 
     $pdo->commit();
+
+    // 事务成功后才写入文件，避免回滚产生孤儿文件
+    if (!is_dir($uploadsDir)) mkdir($uploadsDir, 0755, true);
+    $imageData = base64_decode($b64);
+    file_put_contents($uploadsDir . '/' . $imageFilename, $imageData);
 } catch (\Throwable $e) {
     $pdo->rollBack();
 }
