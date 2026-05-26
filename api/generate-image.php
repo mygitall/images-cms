@@ -94,10 +94,14 @@ $requestPayload = [
 ];
 
 if (!empty($referenceImages)) {
-    $refs = count($referenceImages) === 1 ? $referenceImages[0] : $referenceImages;
-    // 同时用 image 和 images，兼容不同 API
-    $requestPayload['image'] = $refs;
-    $requestPayload['images'] = $refs;
+    // 转为纯 base64（去 data URL 前缀），始终以数组发送
+    $refs = array_map(function ($img) {
+        if (strpos($img, 'data:image/') === 0 && ($pos = strpos($img, ';base64,')) !== false) {
+            return substr($img, $pos + 8);
+        }
+        return $img;
+    }, $referenceImages);
+    $requestPayload['reference_images'] = $refs;
 }
 
 $requestBody = json_encode($requestPayload);
