@@ -140,8 +140,8 @@ function PreviewDialog({
   const tags = isFree ? [] : (isTemplate
     ? [...new Set([...(item.tags || []), ...(item.styles || []), ...(item.scenes || [])])].slice(0, 8)
     : [...new Set([...(item.styles || []), ...(item.scenes || [])])].slice(0, 8));
-  const guidance = listFor(item.guidance, language);
-  const pitfalls = listFor(item.pitfalls, language);
+  const guidance = isFree ? [] : listFor(item.guidance, language);
+  const pitfalls = isFree ? [] : listFor(item.pitfalls, language);
   const isGenerating = generationState.status === 'generating';
   const generatedImage = generationState.image;
   const isSignedIn = Boolean(session?.access_token || session?.phpSession);
