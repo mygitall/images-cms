@@ -72,7 +72,6 @@ function GenerationHistory({ open, language, onClose }) {
                     <img
                       src={item.imageUrl}
                       alt=""
-                      loading="lazy"
                       onClick={() => setLightboxImage(item.imageUrl)}
                       style={{ cursor: 'pointer' }}
                     />

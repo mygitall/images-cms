@@ -428,7 +428,7 @@ function App() {
             <a href="#gallery">{t.navCases}</a>
             <a href="#templates">{t.navTemplates}</a>
             <a href="#agent-skill">{t.navSkill}</a>
-            <CommunityNavItem language={language} />
+            <CommunityNavItem language={language} onFreeCreate={() => setPreview({ type: 'free' })} />
             <a href={repoUrl} target="_blank" rel="noreferrer">
               GitHub
             </a>

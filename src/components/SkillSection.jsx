@@ -67,7 +67,7 @@ function SkillSection({ language, repoUrl }) {
           </div>
         </div>
         <figure className="skillPreview">
-          <img src={skillExampleImage} alt={t.skillExampleAlt} loading="lazy" />
+          <img src={skillExampleImage} alt={t.skillExampleAlt} />
           <figcaption>
             <Sparkles size={15} />
             {t.skillExampleCaption}

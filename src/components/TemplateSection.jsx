@@ -33,7 +33,7 @@ function TemplateSection({ language, styleLibrary, onOpenTemplate }) {
                 type="button"
                 onClick={() => onOpenTemplate(item)}
               >
-                <img src={item.cover} alt={title} loading="lazy" />
+                <img src={item.cover} alt={title} />
                 <span className="caseBadge">
                   {language === 'zh' ? '模板' : 'Template'} {String(index + 1).padStart(2, '0')}
                 </span>

@@ -545,6 +545,25 @@
   background: rgba(220, 38, 38, 0.7);
 }
 
+.previewMediaEmpty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.previewMediaPlaceholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: rgba(255, 255, 255, 0.25);
+}
+
+.previewMediaPlaceholder span {
+  font-size: 14px;
+  font-weight: 700;
+}
+
 @media (max-width: 900px) {
   .previewDialog {
     grid-template-columns: 1fr;

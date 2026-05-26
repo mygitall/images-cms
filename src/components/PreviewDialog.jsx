@@ -103,31 +103,43 @@ function PreviewDialog({
       const formatted = formatTemplatePrompt(preview.item, language, styleLibrary);
       setEditablePrompt(formatted);
       setGenerationState({ status: 'idle', image: '', message: '', prompt: '', savedAt: '' });
+    } else if (preview.type === 'free') {
+      setEditablePrompt('');
+      setGenerationState({ status: 'idle', image: '', message: '', prompt: '', savedAt: '' });
     }
   }, [preview]);
+
+  useEffect(() => {
+    if (!preview || preview.type !== 'free') return;
+    fetch('/api/models')
+      .then((r) => r.json())
+      .then((p) => { if (p?.ok) setAvailModels(p.models || []); })
+      .catch(() => {});
+  }, [preview?.type]);
 
   if (!preview) return null;
 
   const { type, item } = preview;
   const isTemplate = type === 'template';
-  const title = isTemplate ? textFor(item.title, language) : item.title;
-  const description = isTemplate ? textFor(item.description, language) : compactText(item.promptPreview);
-  const image = isTemplate ? item.cover : item.image;
-  const imageAlt = isTemplate ? title : item.imageAlt;
-  const promptText = isTemplate ? editablePrompt : editablePrompt;
-  const copyId = isTemplate ? `template-${item.id}` : `case-${item.id}`;
+  const isFree = type === 'free';
+  const title = isFree ? '' : (isTemplate ? textFor(item.title, language) : item?.title || '');
+  const description = isFree ? '' : (isTemplate ? textFor(item.description, language) : compactText(item?.promptPreview));
+  const image = isFree ? '' : (isTemplate ? item.cover : item?.image || '');
+  const imageAlt = isFree ? '' : (isTemplate ? title : item?.imageAlt || '');
+  const promptText = editablePrompt;
+  const copyId = isFree ? 'free' : (isTemplate ? `template-${item.id}` : `case-${item.id}`);
   const isCopied = copiedId === copyId;
-  const primaryLink = isTemplate ? `${repoDocsUrl}#${item.anchor}` : item.githubUrl;
+  const primaryLink = isFree ? '' : (isTemplate ? `${repoDocsUrl}#${item.anchor}` : item?.githubUrl);
   const primaryLabel = isTemplate ? t.openTemplate : t.openOnGithub;
-  const meta = isTemplate
+  const meta = isFree ? [] : (isTemplate
     ? [t.templateKind, localizeLabel(item.category, language, styleLibrary)]
     : [
         `${language === 'zh' ? '案例' : 'Case'} ${item.id}`,
         localizeLabel(item.category, language, styleLibrary)
-      ];
-  const tags = isTemplate
+      ]);
+  const tags = isFree ? [] : (isTemplate
     ? [...new Set([...(item.tags || []), ...(item.styles || []), ...(item.scenes || [])])].slice(0, 8)
-    : [...new Set([...(item.styles || []), ...(item.scenes || [])])].slice(0, 8);
+    : [...new Set([...(item.styles || []), ...(item.scenes || [])])].slice(0, 8));
   const guidance = listFor(item.guidance, language);
   const pitfalls = listFor(item.pitfalls, language);
   const isGenerating = generationState.status === 'generating';
@@ -194,7 +206,7 @@ function PreviewDialog({
           ...getAuthHeaders(session)
         },
         body: JSON.stringify({
-          caseId: isTemplate ? 0 : item.id,
+          caseId: (isTemplate || isFree) ? 0 : item.id,
           prompt,
           referenceImages: referenceMode ? referenceImages : []
         })
@@ -208,14 +220,14 @@ function PreviewDialog({
           setGenerationState({ status: 'idle', image: generatedImage, message: '' });
           return;
         }
-        if (payload.error === 'INVALID_PROMPT' && isTemplate) {
+        if (payload.error === 'INVALID_PROMPT' && (isTemplate || isFree)) {
           setGenerationState({ status: 'error', image: '', message: t.promptRequired });
           return;
         }
         throw new Error(payload.error || 'GENERATION_FAILED');
       }
 
-      if (isTemplate) {
+      if (isTemplate || isFree) {
         setGenerationState({ status: 'success', image: payload.image, message: '', prompt, savedAt: new Date().toISOString() });
       } else {
         const savedAt = new Date().toISOString();
@@ -248,8 +260,13 @@ function PreviewDialog({
         <button className="previewClose" type="button" onClick={onClose} aria-label={t.closePreview}>
           <X size={20} />
         </button>
-        <div className={cx('previewMedia', generatedImage && 'hasComparison')}>
-          {generatedImage ? (
+        <div className={cx('previewMedia', generatedImage && 'hasComparison', isFree && !generatedImage && 'previewMediaEmpty')}>
+          {isFree && !generatedImage ? (
+            <div className="previewMediaPlaceholder">
+              <ImageIcon size={48} />
+              <span>{language === 'zh' ? '自由生图' : 'Free Creation'}</span>
+            </div>
+          ) : generatedImage ? (
             <div className="comparisonGrid">
               <figure className="comparisonFigure">
                 <div className="comparisonLabel">{t.originalImage}</div>
@@ -268,63 +285,70 @@ function PreviewDialog({
           )}
         </div>
         <div className="previewContent">
-          <div className="previewMeta">
-            {meta.map((itemMeta) => (
-              <span key={itemMeta}>{itemMeta}</span>
-            ))}
-          </div>
-          <h2 id="preview-title">{title}</h2>
-          <p>{description}</p>
-          <div className="tagRow previewTags">
-            {tags.map((tag) => (
-              <span key={`${type}-${item.id}-${tag}`}>
-                {isTemplate
-                  ? localizeTemplateTag(tag, language, styleLibrary)
-                  : localizeLabel(tag, language, styleLibrary)}
-              </span>
-            ))}
-          </div>
+          {!isFree ? (
+            <div className="previewMeta">
+              {meta.map((itemMeta) => (
+                <span key={itemMeta}>{itemMeta}</span>
+              ))}
+            </div>
+          ) : null}
+          {!isFree ? <h2 id="preview-title">{title}</h2> : null}
+          {!isFree ? <p>{description}</p> : null}
+          {!isFree ? (
+            <div className="tagRow previewTags">
+              {tags.map((tag) => (
+                <span key={`${type}-${item.id}-${tag}`}>
+                  {isTemplate
+                    ? localizeTemplateTag(tag, language, styleLibrary)
+                    : localizeLabel(tag, language, styleLibrary)}
+                </span>
+              ))}
+            </div>
+          ) : null}
           {isTemplate && item.useWhen ? (
             <div className="previewSection compactSection">
               <h3>{t.useWhen}</h3>
               <p>{textFor(item.useWhen, language)}</p>
             </div>
           ) : null}
-          <div className="previewActions">
-            {!isTemplate ? (
-              <button
-                className={cx('favoriteAction', favorite && 'active')}
-                type="button"
-                onClick={() => onToggleFavorite(item)}
-                disabled={favoriteBusy}
-                aria-pressed={Boolean(favorite)}
-              >
-                {favoriteBusy ? <LoaderCircle className="spinIcon" size={17} /> : <Heart size={17} />}
-                {favorite ? t.unfavorite : t.favorite}
+          {!isFree ? (
+            <div className="previewActions">
+              {!isTemplate ? (
+                <button
+                  className={cx('favoriteAction', favorite && 'active')}
+                  type="button"
+                  onClick={() => onToggleFavorite(item)}
+                  disabled={favoriteBusy}
+                  aria-pressed={Boolean(favorite)}
+                >
+                  {favoriteBusy ? <LoaderCircle className="spinIcon" size={17} /> : <Heart size={17} />}
+                  {favorite ? t.unfavorite : t.favorite}
+                </button>
+              ) : null}
+              <button type="button" onClick={() => onCopyText(promptText, copyId)}>
+                {isCopied ? <Check size={17} /> : <Copy size={17} />}
+                {isCopied ? t.copied : isTemplate ? t.copyTemplatePrompt : t.copyPrompt}
               </button>
-            ) : null}
-            <button type="button" onClick={() => onCopyText(promptText, copyId)}>
-              {isCopied ? <Check size={17} /> : <Copy size={17} />}
-              {isCopied ? t.copied : isTemplate ? t.copyTemplatePrompt : t.copyPrompt}
-            </button>
-            <button type="button" onClick={handleGenerate} disabled={generationLocked}>
-              {isGenerating ? <LoaderCircle className="spinIcon" size={17} /> : <ImageIcon size={17} />}
-              {isGenerating ? t.generating : isOutOfCredits ? t.buyCredits : isSignedIn ? t.generateImage : t.signInToGenerate}
-            </button>
-            <a href={primaryLink} target="_blank" rel="noreferrer">
-              {primaryLabel}
-              <ArrowUpRight size={17} />
-            </a>
-            {!isTemplate && item.sourceUrl ? (
-              <a href={item.sourceUrl} target="_blank" rel="noreferrer">
-                {t.source}
+              <button type="button" onClick={handleGenerate} disabled={generationLocked}>
+                {isGenerating ? <LoaderCircle className="spinIcon" size={17} /> : <ImageIcon size={17} />}
+                {isGenerating ? t.generating : isOutOfCredits ? t.buyCredits : isSignedIn ? t.generateImage : t.signInToGenerate}
+              </button>
+              <a href={primaryLink} target="_blank" rel="noreferrer">
+                {primaryLabel}
                 <ArrowUpRight size={17} />
               </a>
-            ) : null}
-          </div>
+              {!isTemplate && item?.sourceUrl ? (
+                <a href={item.sourceUrl} target="_blank" rel="noreferrer">
+                  {t.source}
+                  <ArrowUpRight size={17} />
+                </a>
+              ) : null}
+            </div>
+          ) : null}
           <div className="previewSection">
             <div className="sectionTitleRow">
-              <h3>{isTemplate ? t.templatePrompt : t.editablePrompt}</h3>
+              <h3>{isFree ? (language === 'zh' ? '输入提示词' : 'Enter Prompt') : (isTemplate ? t.templatePrompt : t.editablePrompt)}</h3>
+              {!isFree ? (
               <button type="button" onClick={() => {
                 if (isTemplate) {
                   setEditablePrompt(formatTemplatePrompt(item, language, styleLibrary));
@@ -334,6 +358,7 @@ function PreviewDialog({
               }}>
                 {t.resetPrompt}
               </button>
+              ) : null}
             </div>
             <textarea
               className="promptEditor"
