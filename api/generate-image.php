@@ -41,7 +41,7 @@ $input = json_decode(file_get_contents('php://input'), true) ?? [];
 $prompt = trim($input['prompt'] ?? '');
 $caseId = (int)($input['caseId'] ?? 0);
 
-if (!$prompt || strlen($prompt) > $maxPromptLength || $caseId <= 0) {
+if (!$prompt || strlen($prompt) > $maxPromptLength) {
     json_out(['ok' => false, 'error' => 'INVALID_PROMPT'], 400);
 }
 
@@ -197,8 +197,9 @@ try {
     if ($creditAmount > 0) {
         $newBalance = $balance - $creditAmount;
         $pdo->prepare('UPDATE users SET balance = ? WHERE id = ?')->execute([$newBalance, $uid]);
+        $reason = $caseId > 0 ? "案例 #{$caseId} 生图" : '模板生图';
         $pdo->prepare('INSERT INTO balance_logs (user_id, amount, type, reason, balance_after) VALUES (?, ?, ?, ?, ?)')
-            ->execute([$uid, -$creditAmount, 'generation', "案例 #{$caseId} 生图", $newBalance]);
+            ->execute([$uid, -$creditAmount, 'generation', $reason, $newBalance]);
         $balance = $newBalance;
     }
 

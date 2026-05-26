@@ -52,7 +52,11 @@ function PreviewDialog({
   }, [generationState.status]);
 
   useEffect(() => {
-    if (!preview || preview.type !== 'case') return;
+    if (!preview) return;
+    if (preview.type !== 'case') {
+      setAvailModels([]);
+      return;
+    }
     fetch('/api/models')
       .then((r) => r.json())
       .then((p) => { if (p?.ok) setAvailModels(p.models || []); })
@@ -73,20 +77,27 @@ function PreviewDialog({
   }, [preview, onClose]);
 
   useEffect(() => {
-    if (preview?.type !== 'case') return;
-    const savedGeneration = getSavedGeneration(preview.item.id);
-    setEditablePrompt(preview.item.prompt || '');
-    setGenerationState(
-      savedGeneration
-        ? {
-            status: 'saved',
-            image: savedGeneration.image,
-            message: '',
-            prompt: savedGeneration.prompt || preview.item.prompt || '',
-            savedAt: savedGeneration.savedAt || ''
-          }
-        : { status: 'idle', image: '', message: '', prompt: '', savedAt: '' }
-    );
+    if (!preview) return;
+
+    if (preview.type === 'case') {
+      const savedGeneration = getSavedGeneration(preview.item.id);
+      setEditablePrompt(preview.item.prompt || '');
+      setGenerationState(
+        savedGeneration
+          ? {
+              status: 'saved',
+              image: savedGeneration.image,
+              message: '',
+              prompt: savedGeneration.prompt || preview.item.prompt || '',
+              savedAt: savedGeneration.savedAt || ''
+            }
+          : { status: 'idle', image: '', message: '', prompt: '', savedAt: '' }
+      );
+    } else if (preview.type === 'template') {
+      const formatted = formatTemplatePrompt(preview.item, language, styleLibrary);
+      setEditablePrompt(formatted);
+      setGenerationState({ status: 'idle', image: '', message: '', prompt: '', savedAt: '' });
+    }
   }, [preview]);
 
   if (!preview) return null;
@@ -97,7 +108,7 @@ function PreviewDialog({
   const description = isTemplate ? textFor(item.description, language) : compactText(item.promptPreview);
   const image = isTemplate ? item.cover : item.image;
   const imageAlt = isTemplate ? title : item.imageAlt;
-  const promptText = isTemplate ? formatTemplatePrompt(item, language, styleLibrary) : editablePrompt;
+  const promptText = isTemplate ? editablePrompt : editablePrompt;
   const copyId = isTemplate ? `template-${item.id}` : `case-${item.id}`;
   const isCopied = copiedId === copyId;
   const primaryLink = isTemplate ? `${repoDocsUrl}#${item.anchor}` : item.githubUrl;
@@ -114,7 +125,7 @@ function PreviewDialog({
   const guidance = listFor(item.guidance, language);
   const pitfalls = listFor(item.pitfalls, language);
   const isGenerating = generationState.status === 'generating';
-  const generatedImage = !isTemplate ? generationState.image : '';
+  const generatedImage = generationState.image;
   const isSignedIn = Boolean(session?.access_token || session?.phpSession);
   const creditBalance = Number(profile?.creditBalance || 0);
   const isOutOfCredits = isSignedIn
@@ -124,7 +135,7 @@ function PreviewDialog({
   const quotaText = isSignedIn ? getGenerationQuotaText(profile, language) : t.authRequired;
 
   async function handleGenerate() {
-    if (isTemplate || isGenerating) return;
+    if (isGenerating) return;
     if (!isSignedIn) {
       onAuthRequired();
       setGenerationState({ status: 'idle', image: generatedImage, message: '' });
@@ -151,7 +162,7 @@ function PreviewDialog({
           ...getAuthHeaders(session)
         },
         body: JSON.stringify({
-          caseId: item.id,
+          caseId: isTemplate ? 0 : item.id,
           prompt
         })
       });
@@ -164,17 +175,25 @@ function PreviewDialog({
           setGenerationState({ status: 'idle', image: generatedImage, message: '' });
           return;
         }
+        if (payload.error === 'INVALID_PROMPT' && isTemplate) {
+          setGenerationState({ status: 'error', image: '', message: t.promptRequired });
+          return;
+        }
         throw new Error(payload.error || 'GENERATION_FAILED');
       }
 
-      const savedAt = new Date().toISOString();
-      saveGeneratedTest(item.id, {
-        image: payload.image,
-        prompt,
-        savedAt
-      });
-      if (payload.user) onProfileChange(payload.user);
-      setGenerationState({ status: 'success', image: payload.image, message: '', prompt, savedAt });
+      if (isTemplate) {
+        setGenerationState({ status: 'success', image: payload.image, message: '', prompt, savedAt: new Date().toISOString() });
+      } else {
+        const savedAt = new Date().toISOString();
+        saveGeneratedTest(item.id, {
+          image: payload.image,
+          prompt,
+          savedAt
+        });
+        if (payload.user) onProfileChange(payload.user);
+        setGenerationState({ status: 'success', image: payload.image, message: '', prompt, savedAt });
+      }
     } catch (error) {
       setGenerationState({
         status: 'error',
@@ -255,12 +274,10 @@ function PreviewDialog({
               {isCopied ? <Check size={17} /> : <Copy size={17} />}
               {isCopied ? t.copied : isTemplate ? t.copyTemplatePrompt : t.copyPrompt}
             </button>
-            {!isTemplate ? (
-              <button type="button" onClick={handleGenerate} disabled={generationLocked}>
-                {isGenerating ? <LoaderCircle className="spinIcon" size={17} /> : <ImageIcon size={17} />}
-                {isGenerating ? t.generating : isOutOfCredits ? t.buyCredits : isSignedIn ? t.generateTest : t.signInToGenerate}
-              </button>
-            ) : null}
+            <button type="button" onClick={handleGenerate} disabled={generationLocked}>
+              {isGenerating ? <LoaderCircle className="spinIcon" size={17} /> : <ImageIcon size={17} />}
+              {isGenerating ? t.generating : isOutOfCredits ? t.buyCredits : isSignedIn ? t.generateImage : t.signInToGenerate}
+            </button>
             <a href={primaryLink} target="_blank" rel="noreferrer">
               {primaryLabel}
               <ArrowUpRight size={17} />
@@ -275,48 +292,46 @@ function PreviewDialog({
           <div className="previewSection">
             <div className="sectionTitleRow">
               <h3>{isTemplate ? t.templatePrompt : t.editablePrompt}</h3>
-              {!isTemplate ? (
-                <button type="button" onClick={() => setEditablePrompt(item.prompt || '')}>
-                  {t.resetPrompt}
-                </button>
+              <button type="button" onClick={() => {
+                if (isTemplate) {
+                  setEditablePrompt(formatTemplatePrompt(item, language, styleLibrary));
+                } else {
+                  setEditablePrompt(preview.item.prompt || '');
+                }
+              }}>
+                {t.resetPrompt}
+              </button>
+            </div>
+            <textarea
+              className="promptEditor"
+              value={editablePrompt}
+              onChange={(event) => setEditablePrompt(event.target.value)}
+              maxLength={6000}
+            />
+            <div className="generationPanel">
+              <div className={cx('generationQuota', (!isSignedIn || isOutOfCredits) && 'used')}>
+                {quotaText}
+              </div>
+              {availModels.length > 0 ? (
+                <div className="generationModels">
+                  {language === 'zh' ? '模型：' : 'Models: '}
+                  {availModels.map((m) => <code key={m}>{m}</code>)}
+                </div>
+              ) : null}
+              {isGenerating ? (
+                <div className="generationTimer">
+                  <LoaderCircle className="spinIcon" size={16} />
+                  {language === 'zh' ? `生成中... ${genElapsed}s` : `Generating... ${genElapsed}s`}
+                </div>
+              ) : null}
+              <button type="button" onClick={handleGenerate} disabled={generationLocked}>
+                {isGenerating ? <LoaderCircle className="spinIcon" size={17} /> : <ImageIcon size={17} />}
+                {isGenerating ? t.generating : isOutOfCredits ? t.buyCredits : isSignedIn ? t.generateImage : t.signInToGenerate}
+              </button>
+              {generationState.status === 'error' ? (
+                <p className="generationMessage">{generationState.message}</p>
               ) : null}
             </div>
-            {isTemplate ? (
-              <pre className="promptBlock">{promptText}</pre>
-            ) : (
-              <textarea
-                className="promptEditor"
-                value={editablePrompt}
-                onChange={(event) => setEditablePrompt(event.target.value)}
-                maxLength={6000}
-              />
-            )}
-            {!isTemplate ? (
-              <div className="generationPanel">
-                <div className={cx('generationQuota', (!isSignedIn || isOutOfCredits) && 'used')}>
-                  {quotaText}
-                </div>
-                {availModels.length > 0 ? (
-                  <div className="generationModels">
-                    {language === 'zh' ? '模型：' : 'Models: '}
-                    {availModels.map((m) => <code key={m}>{m}</code>)}
-                  </div>
-                ) : null}
-                {isGenerating ? (
-                  <div className="generationTimer">
-                    <LoaderCircle className="spinIcon" size={16} />
-                    {language === 'zh' ? `生成中... ${genElapsed}s` : `Generating... ${genElapsed}s`}
-                  </div>
-                ) : null}
-                <button type="button" onClick={handleGenerate} disabled={generationLocked}>
-                  {isGenerating ? <LoaderCircle className="spinIcon" size={17} /> : <ImageIcon size={17} />}
-                  {isGenerating ? t.generating : isOutOfCredits ? t.buyCredits : isSignedIn ? t.generateImage : t.signInToGenerate}
-                </button>
-                {generationState.status === 'error' ? (
-                  <p className="generationMessage">{generationState.message}</p>
-                ) : null}
-              </div>
-            ) : null}
           </div>
           {isTemplate && (guidance.length || pitfalls.length || item.exampleCases?.length) ? (
             <div className="previewColumns">
