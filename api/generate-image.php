@@ -93,18 +93,21 @@ $requestPayload = [
     'size'   => '1024x1024'
 ];
 
+$useEditsEndpoint = false;
 if (!empty($referenceImages)) {
-    $requestPayload['image'] = $referenceImages[0];
+    // 参考图模式：用 edits 端点 + 纯 base64
+    $useEditsEndpoint = true;
+    $requestPayload['image'] = preg_replace('#^data:image/\w+;base64,#', '', $referenceImages[0]);
     if (count($referenceImages) > 1) {
-        $requestPayload['reference_images'] = $referenceImages;
+        $requestPayload['mask'] = preg_replace('#^data:image/\w+;base64,#', '', $referenceImages[1]);
     }
 }
 
 $requestBody = json_encode($requestPayload);
 
-// ---- DEBUG：记录请求体，排查参考图问题 ----
+// ---- DEBUG ----
 @file_put_contents(__DIR__ . '/../uploads/debug_request.json',
-    json_encode(['time' => date('Y-m-d H:i:s'), 'has_refs' => !empty($referenceImages), 'ref_count' => count($referenceImages), 'payload' => $requestPayload], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)
+    json_encode(['time' => date('Y-m-d H:i:s'), 'has_refs' => !empty($referenceImages), 'ref_count' => count($referenceImages), 'use_edits' => $useEditsEndpoint, 'payload' => $requestPayload], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)
 );
 
 $response = null;
@@ -118,7 +121,7 @@ foreach ($orderedProfiles as $profile) {
     $baseUrl = cleanBaseUrl($profile['base_url'] ?? '');
     if (empty($apiKey) || empty($baseUrl)) continue;
 
-    $apiUrl = $baseUrl . '/v1/images/generations';
+    $apiUrl = $baseUrl . ($useEditsEndpoint ? '/v1/images/edits' : '/v1/images/generations');
 
     for ($retry = 0; $retry <= $maxRetries; $retry++) {
         $ch = curl_init($apiUrl);
@@ -157,7 +160,7 @@ try {
     $logStmt = $pdo->prepare('INSERT INTO api_logs (user_id, endpoint, method, status, http_code, duration_ms, error_msg) VALUES (?, ?, ?, ?, ?, ?, ?)');
     $logStmt->execute([
         $uid,
-        '/v1/images/generations',
+        $useEditsEndpoint ? '/v1/images/edits' : '/v1/images/generations',
         'POST',
         $httpCode >= 200 && $httpCode < 300 ? 'success' : 'error',
         $httpCode,
