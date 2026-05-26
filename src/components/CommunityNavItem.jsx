@@ -23,7 +23,7 @@ function CommunityNavItem({ language, onFreeCreate }) {
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-label={t.navCommunity}
-        onClick={() => { setOpen((current) => !current); onFreeCreate?.(); }}
+        onClick={() => onFreeCreate?.()}
       >
         <WeChatIcon />
         {t.navCommunity}

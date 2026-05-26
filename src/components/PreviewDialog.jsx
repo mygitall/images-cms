@@ -155,6 +155,10 @@ function PreviewDialog({
   function handleFileChange(event) {
     const file = event.target.files?.[0];
     if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      setGenerationState({ status: 'error', image: generatedImage, message: language === 'zh' ? '图片大小不能超过 10MB' : 'Image must be under 10MB' });
+      return;
+    }
     const reader = new FileReader();
     reader.onload = () => {
       setReferenceImages((prev) => {
@@ -256,7 +260,7 @@ function PreviewDialog({
         if (event.target === event.currentTarget) onClose();
       }}
     >
-      <section className="previewDialog" role="dialog" aria-modal="true" aria-labelledby="preview-title">
+      <section className="previewDialog" role="dialog" aria-modal="true" aria-label={isFree ? (language === 'zh' ? '自由生图' : 'Free Creation') : undefined} aria-labelledby={isFree ? undefined : 'preview-title'}>
         <button className="previewClose" type="button" onClick={onClose} aria-label={t.closePreview}>
           <X size={20} />
         </button>

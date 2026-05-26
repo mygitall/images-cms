@@ -106,12 +106,14 @@ function GenerationHistory({ open, language, onClose }) {
       {lightboxImage ? (
         <div
           className="historyLightbox"
-          role="presentation"
+          role="dialog"
+          aria-label={language === 'zh' ? '查看原图' : 'View full image'}
           onClick={() => setLightboxImage(null)}
         >
           <button
             className="historyLightboxClose"
             type="button"
+            aria-label={language === 'zh' ? '关闭' : 'Close'}
             onClick={() => setLightboxImage(null)}
           >
             <X size={24} />

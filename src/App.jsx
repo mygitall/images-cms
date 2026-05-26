@@ -465,17 +465,20 @@ function App() {
       </header>
       {favoriteMessage ? <div className="toastNotice">{favoriteMessage}</div> : null}
 
-      <Hero
-        latestCases={heroCases}
-        language={language}
-        repoUrl={repoUrl}
-        totalCases={siteData.totalCases}
-        categoryCount={siteData.categories.length}
-        onOpenCase={(item) => setPreview({ type: 'case', item })}
-      />
+      {heroCases.length > 0 ? (
+        <Hero
+          latestCases={heroCases}
+          language={language}
+          repoUrl={repoUrl}
+          totalCases={siteData.totalCases}
+          categoryCount={siteData.categories.length}
+          onOpenCase={(item) => setPreview({ type: 'case', item })}
+        />
+      ) : null}
 
-      <section className="hotStrip">
-        {hotStripCases.map((caseItem) => (
+      {hotStripCases.length > 0 ? (
+        <section className="hotStrip">
+          {hotStripCases.map((caseItem) => (
           <button
             type="button"
             aria-label={`${language === 'zh' ? '打开案例' : 'Open case'} ${caseItem.id}: ${caseItem.title}`}
@@ -487,6 +490,7 @@ function App() {
           </button>
         ))}
       </section>
+      ) : null}
 
       <section className="gallerySection" id="gallery">
         <div className="sectionHead">
