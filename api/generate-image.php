@@ -129,11 +129,6 @@ if (!empty($referenceImages)) {
 
 $requestBody = json_encode($requestPayload);
 
-// ---- DEBUG ----
-@file_put_contents(__DIR__ . '/../uploads/debug_request.json',
-    json_encode(['time' => date('Y-m-d H:i:s'), 'has_refs' => !empty($referenceImages), 'ref_count' => count($referenceImages), 'chat_format' => $useChatEndpoint, 'keys' => array_keys($requestPayload)], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)
-);
-
 $response = null;
 $httpCode = 0;
 $curlError = '';
@@ -165,10 +160,6 @@ foreach ($orderedProfiles as $profile) {
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $curlError = curl_error($ch);
         $usedProfile = $baseUrl;
-        // DEBUG：记录 API 响应
-        @file_put_contents(__DIR__ . '/../uploads/debug_response.json',
-            json_encode(['time' => date('Y-m-d H:i:s'), 'http_code' => $httpCode, 'curl_error' => $curlError, 'body' => $response], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)
-        );
         curl_close($ch);
 
         // 成功则跳出
