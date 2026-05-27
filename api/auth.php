@@ -83,9 +83,6 @@ if ($action === 'login') {
     if (!password_verify($password, $user['password'])) json_out(['error' => '密码错误'], 401);
 
     $_SESSION['user'] = ['id' => (int)$user['id'], 'username' => $user['username'], 'role' => $user['role'] ?? 'user'];
-    if (($user['role'] ?? '') === 'admin') {
-        $_SESSION['admin'] = $_SESSION['user'];
-    }
     json_out(buildUserResponse($_SESSION['user']));
 }
 
