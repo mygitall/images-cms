@@ -1,29 +1,30 @@
 <IfModule mod_rewrite.c>
   RewriteEngine On
+  RewriteBase /
 
   # Let /dist/ requests pass through
   RewriteRule ^dist/ - [L]
 
   # API — PHP files pass through, known endpoints route to .php
   RewriteRule ^api/.+\.php$ - [L]
-  RewriteRule ^api/me$ /api/me.php [L,QSA]
-  RewriteRule ^api/favorites$ /api/favorites.php [L,QSA]
-  RewriteRule ^api/auth$ /api/auth.php [L,QSA]
-  RewriteRule ^api/admin/users$ /api/admin/users.php [L,QSA]
-  RewriteRule ^api/admin/metrics$ /api/admin/metrics.php [L,QSA]
-  RewriteRule ^api/admin/credits/adjust$ /api/admin/credits-adjust.php [L,QSA]
-  RewriteRule ^api/billing/plans$ /api/billing/plans.php [L,QSA]
-  RewriteRule ^api/generate-image$ /api/generate-image.php [L,QSA]
-  RewriteRule ^api/generation-history$ /api/generation-history.php [L,QSA]
-  RewriteRule ^api/generation-delete$ /api/generation-delete.php [L,QSA]
-  RewriteRule ^api/models$ /api/models.php [L,QSA]
-  RewriteRule ^api/admin/api-config$ /api/admin/api-config.php [L,QSA]
+  RewriteRule ^api/me$ api/me.php [L,QSA]
+  RewriteRule ^api/favorites$ api/favorites.php [L,QSA]
+  RewriteRule ^api/auth$ api/auth.php [L,QSA]
+  RewriteRule ^api/admin/users$ api/admin/users.php [L,QSA]
+  RewriteRule ^api/admin/metrics$ api/admin/metrics.php [L,QSA]
+  RewriteRule ^api/admin/credits/adjust$ api/admin/credits-adjust.php [L,QSA]
+  RewriteRule ^api/billing/plans$ api/billing/plans.php [L,QSA]
+  RewriteRule ^api/generate-image$ api/generate-image.php [L,QSA]
+  RewriteRule ^api/generation-history$ api/generation-history.php [L,QSA]
+  RewriteRule ^api/generation-delete$ api/generation-delete.php [L,QSA]
+  RewriteRule ^api/models$ api/models.php [L,QSA]
+  RewriteRule ^api/admin/api-config$ api/admin/api-config.php [L,QSA]
   RewriteRule ^api/ - [R=503,L]
 
-  # Redirect /index.html to /dist/ (except root / which is handled below)
-  RewriteRule ^$ /dist/ [R=302,L]
+  # Root redirect to dist/
+  RewriteRule ^$ dist/ [R=302,L]
 
   # Rewrite data files and images to /dist/
-  RewriteRule ^(cases\.json|style-library\.json)$ /dist/$1 [L]
-  RewriteRule ^images/(.*)$ /dist/images/$1 [L]
+  RewriteRule ^(cases\.json|style-library\.json)$ dist/$1 [L]
+  RewriteRule ^images/(.*)$ dist/images/$1 [L]
 </IfModule>
