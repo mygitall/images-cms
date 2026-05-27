@@ -62,18 +62,19 @@ if ($globalTotalMax > 0) {
     if ($cnt >= $globalTotalMax) json_out(['ok' => false, 'error' => 'LIMIT_REACHED', 'message' => '全站总生图已达上限'], 403);
 }
 
-// ---- 余额检查 ----
-$creditAmount = 0;
+// ---- 余额检查（单位：元，后台可配 gen_cost_yuan） ----
+$genCost = floatval($imgFeatures['gen_cost_yuan'] ?? 0.09);
+if ($genCost <= 0) $genCost = 0.09;
+
+$costAmount = 0;
 if ($isAdmin) {
-    // 管理员每次消耗 1 积分
-    if ($balance < 1) json_out(['ok' => false, 'error' => 'CREDITS_REQUIRED'], 402);
-    $creditAmount = 1;
+    if ($balance < $genCost) json_out(['ok' => false, 'error' => 'CREDITS_REQUIRED'], 402);
+    $costAmount = $genCost;
 } elseif ($freeUsed) {
-    // 已用免费额度，消耗积分
-    if ($balance < 1) json_out(['ok' => false, 'error' => 'CREDITS_REQUIRED'], 402);
-    $creditAmount = 1;
+    if ($balance < $genCost) json_out(['ok' => false, 'error' => 'CREDITS_REQUIRED'], 402);
+    $costAmount = $genCost;
 }
-// else: 免费生成，不扣积分
+// else: 免费生成，不扣费
 
 // ---- 加载 images20 API 配置（尝试所有可用 profile） ----
 $active = $imgConfig['active'] ?? 'default';
@@ -258,12 +259,12 @@ $imageFilename = 'gen_' . time() . '_' . $uid . '.jpg';
 
 $pdo->beginTransaction();
 try {
-    if ($creditAmount > 0) {
-        $newBalance = $balance - $creditAmount;
+    if ($costAmount > 0) {
+        $newBalance = $balance - $costAmount;
         $pdo->prepare('UPDATE users SET balance = ? WHERE id = ?')->execute([$newBalance, $uid]);
         $reason = $caseId > 0 ? "案例 #{$caseId} 生图" : '模板生图';
         $pdo->prepare('INSERT INTO balance_logs (user_id, amount, type, reason, balance_after) VALUES (?, ?, ?, ?, ?)')
-            ->execute([$uid, -$creditAmount, 'generation', $reason, $newBalance]);
+            ->execute([$uid, -$costAmount, 'generation', $reason, $newBalance]);
         $balance = $newBalance;
     }
 
@@ -290,7 +291,7 @@ $updatedUser = [
     'fullName' => $row['username'],
     'avatarUrl' => '',
     'creditBalance' => $balance,
-    'freeUsed' => $freeUsed || $creditAmount > 0,
+    'freeUsed' => $freeUsed || $costAmount > 0,
     'isSuperAdmin' => $isAdmin,
     'role' => $role,
     'membership' => ['isActive' => false, 'planId' => '', 'status' => 'inactive', 'currentPeriodEnd' => null],
