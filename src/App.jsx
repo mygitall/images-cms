@@ -117,7 +117,7 @@ function App() {
     if (isSupabaseConfigured && supabase) return undefined;
 
     let cancelled = false;
-    fetch('/api/me')
+    fetch('/api/me.php')
       .then((response) => response.json())
       .then((payload) => {
         if (cancelled) return;
@@ -143,7 +143,7 @@ function App() {
       };
     }
 
-    fetch('/api/me', {
+    fetch('/api/me.php', {
       headers: getAuthHeaders(session)
     })
       .then((response) => response.json())
@@ -168,7 +168,7 @@ function App() {
     }
 
     try {
-      const response = await fetch('/api/favorites', {
+      const response = await fetch('/api/favorites.php', {
         headers: getAuthHeaders(session)
       });
       const payload = await response.json().catch(() => ({}));
@@ -397,7 +397,7 @@ function App() {
     }
 
     try {
-      const response = await fetch(isFavorite ? `/api/favorites?caseId=${caseId}` : '/api/favorites', {
+      const response = await fetch(isFavorite ? `/api/favorites.php?caseId=${caseId}` : '/api/favorites.php', {
         method: isFavorite ? 'DELETE' : 'POST',
         headers: {
           ...(isFavorite ? {} : { 'Content-Type': 'application/json' }),

@@ -17,7 +17,7 @@ function GenerationHistory({ open, language, onClose }) {
 
   function loadHistory() {
     setStatus('loading');
-    fetch('/api/generation-history')
+    fetch('/api/generation-history.php')
       .then((r) => r.json())
       .then((payload) => {
         setItems(payload?.ok ? payload.history || [] : []);
@@ -46,7 +46,7 @@ function GenerationHistory({ open, language, onClose }) {
     if (!window.confirm(t.confirmDelete)) return;
     setDeleteBusy(item.id);
     try {
-      const res = await fetch('/api/generation-delete', {
+      const res = await fetch('/api/generation-delete.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: item.id })

@@ -64,9 +64,11 @@ if ($action === 'register') {
     if ($stmt->fetch()) json_out(['error' => '用户名已存在'], 409);
 
     $hash = password_hash($password, PASSWORD_BCRYPT);
-    $pdo->prepare('INSERT INTO users (username, password) VALUES (?, ?)')->execute([$username, $hash]);
+    $userCount = (int)$pdo->query('SELECT COUNT(*) FROM users')->fetchColumn();
+    $role = ($userCount === 0) ? 'admin' : 'user';
+    $pdo->prepare('INSERT INTO users (username, password, role) VALUES (?, ?, ?)')->execute([$username, $hash, $role]);
 
-    $_SESSION['user'] = ['id' => (int)$pdo->lastInsertId(), 'username' => $username, 'role' => 'user'];
+    $_SESSION['user'] = ['id' => (int)$pdo->lastInsertId(), 'username' => $username, 'role' => $role];
     json_out(buildUserResponse($_SESSION['user']));
 }
 

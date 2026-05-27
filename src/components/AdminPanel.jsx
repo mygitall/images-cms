@@ -36,7 +36,7 @@ function AdminPanel({ open, language, session, casesById, onClose, onOpenCase })
 
   async function loadApiConfig() {
     try {
-      const response = await fetch('/api/admin/api-config', { headers: getAuthHeaders(session) });
+      const response = await fetch('/api/admin/api-config.php', { headers: getAuthHeaders(session) });
       const payload = await response.json().catch(() => ({}));
       if (payload?.ok) {
         setApiProfiles(payload.profiles || []);
@@ -50,7 +50,7 @@ function AdminPanel({ open, language, session, casesById, onClose, onOpenCase })
   async function handleApiSwitch(profileName) {
     setApiSwitchBusy(true);
     try {
-      const response = await fetch('/api/admin/api-config', {
+      const response = await fetch('/api/admin/api-config.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...getAuthHeaders(session) },
         body: JSON.stringify({ active: profileName })
@@ -68,7 +68,7 @@ function AdminPanel({ open, language, session, casesById, onClose, onOpenCase })
       const body = editProfile === 'new'
         ? { addProfile: editName.trim(), api_key: editKey.trim(), base_url: editUrl.trim() }
         : { editProfile: editProfile.name, api_key: editKey.trim(), base_url: editUrl.trim() };
-      const response = await fetch('/api/admin/api-config', {
+      const response = await fetch('/api/admin/api-config.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...getAuthHeaders(session) },
         body: JSON.stringify(body)
@@ -83,7 +83,7 @@ function AdminPanel({ open, language, session, casesById, onClose, onOpenCase })
     if (!confirm((language === 'zh' ? '确定删除 API' : 'Delete API') + ' "' + profileName + '"?')) return;
     setApiSwitchBusy(true);
     try {
-      await fetch('/api/admin/api-config', {
+      await fetch('/api/admin/api-config.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...getAuthHeaders(session) },
         body: JSON.stringify({ deleteProfile: profileName })
@@ -117,8 +117,8 @@ function AdminPanel({ open, language, session, casesById, onClose, onOpenCase })
         params.set('end', nextEnd);
       }
       const [usersResponse, metricsResponse] = await Promise.all([
-        fetch('/api/admin/users', { headers }),
-        fetch(`/api/admin/metrics?${params.toString()}`, { headers })
+        fetch('/api/admin/users.php', { headers }),
+        fetch(`/api/admin/metrics.php?${params.toString()}`, { headers })
       ]);
       const usersPayload = await usersResponse.json().catch(() => ({}));
       const metricsPayload = await metricsResponse.json().catch(() => ({}));
@@ -159,7 +159,7 @@ function AdminPanel({ open, language, session, casesById, onClose, onOpenCase })
     setMessage('');
 
     try {
-      const response = await fetch('/api/admin/credits/adjust', {
+      const response = await fetch('/api/admin/credits-adjust.php', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

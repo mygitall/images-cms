@@ -38,9 +38,9 @@ function BillingPanel({
     try {
       const headers = getAuthHeaders(session);
       const [plansResponse, historyResponse] = await Promise.all([
-        fetch('/api/billing/plans', { headers }),
+        fetch('/api/billing/plans.php', { headers }),
         (session?.access_token || session?.phpSession)
-          ? fetch('/api/billing/history', { headers })
+          ? fetch('/api/billing/history.php', { headers })
           : Promise.resolve(null)
       ]);
       const plansPayload = await plansResponse.json().catch(() => ({}));
@@ -87,7 +87,7 @@ function BillingPanel({
     setMessage('');
 
     try {
-      const response = await fetch('/api/billing/checkout', {
+      const response = await fetch('/api/billing/checkout.php', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -119,7 +119,7 @@ function BillingPanel({
     setMessage('');
 
     try {
-      const response = await fetch('/api/billing/portal', {
+      const response = await fetch('/api/billing/portal.php', {
         method: 'POST',
         headers: getAuthHeaders(session)
       });

@@ -25,8 +25,6 @@ function load_env($rootDir = null) {
         $val = trim(substr($line, $eq + 1));
         if (!array_key_exists($key, $_ENV)) {
             $_ENV[$key] = $val;
-            // putenv 可能被禁用，仅设置 $_ENV
-            @putenv("{$key}={$val}");
         }
     }
 }

@@ -7,3 +7,6 @@ dist/
 .env*.local
 npm-debug.log*
 .vercel
+deploy-package/
+deploy-package.zip
+uploads/db_error.log

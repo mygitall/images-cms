@@ -70,7 +70,7 @@ function AccountPanel({
     setStatus('loading');
     setMessage('');
     try {
-      const response = await fetch('/api/me', {
+      const response = await fetch('/api/me.php', {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

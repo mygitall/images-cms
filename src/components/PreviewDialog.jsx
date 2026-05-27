@@ -62,7 +62,7 @@ function PreviewDialog({
       setAvailModels([]);
       return;
     }
-    fetch('/api/models')
+    fetch('/api/models.php')
       .then((r) => r.json())
       .then((p) => { if (p?.ok) setAvailModels(p.models || []); })
       .catch(() => {});
@@ -237,7 +237,7 @@ function PreviewDialog({
     setGenerationState({ status: 'generating', image: '', message: '' });
 
     try {
-      const response = await fetch('/api/generate-image', {
+      const response = await fetch('/api/generate-image.php', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

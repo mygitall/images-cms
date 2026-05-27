@@ -2,10 +2,10 @@
   RewriteEngine On
   RewriteBase /
 
-  # Let /dist/ requests pass through
-  RewriteRule ^dist/ - [L]
+  # install 目录直接放行
+  RewriteRule ^install/ - [L]
 
-  # API — PHP files pass through, known endpoints route to .php
+  # API — PHP 文件直接执行，无后缀路径路由到 .php
   RewriteRule ^api/.+\.php$ - [L]
   RewriteRule ^api/me$ api/me.php [L,QSA]
   RewriteRule ^api/favorites$ api/favorites.php [L,QSA]
@@ -21,10 +21,14 @@
   RewriteRule ^api/admin/api-config$ api/admin/api-config.php [L,QSA]
   RewriteRule ^api/ - [R=503,L]
 
-  # Root redirect to dist/
-  RewriteRule ^$ dist/ [R=302,L]
-
-  # Rewrite data files and images to /dist/
+  # 数据文件从 dist/ 读取
   RewriteRule ^(cases\.json|style-library\.json)$ dist/$1 [L]
   RewriteRule ^images/(.*)$ dist/images/$1 [L]
+  RewriteRule ^dist/ - [L]
+
+  # 所有请求交给 index.php（检测安装锁 → 输出 SPA）
+  DirectoryIndex index.php
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . index.php [L,QSA]
 </IfModule>
