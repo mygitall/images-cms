@@ -30,11 +30,14 @@ $role = $row['role'] ?? 'user';
 $isAdmin = ($role === 'admin');
 $freeUsed = false; // 检查是否有过免费生图
 
-// 查是否已使用免费额度
+// 查免费生图次数（默认1次，后台可配 new_user_free_count）
+$imgConfig = require __DIR__ . '/../images20/config.php';
+$freeLimit = max(1, intval($imgConfig['features']['new_user_free_count'] ?? 1));
+
 $freeCheck = $pdo->prepare("SELECT COUNT(*) FROM gen_images WHERE user_id = ?");
 $freeCheck->execute([$uid]);
-$freeCheck = $freeCheck->fetchColumn();
-if ($freeCheck > 0) $freeUsed = true;
+$freeCount = (int)$freeCheck->fetchColumn();
+if ($freeCount >= $freeLimit) $freeUsed = true;
 
 // ---- 读取请求 ----
 $input = json_decode(file_get_contents('php://input'), true) ?? [];
@@ -47,7 +50,6 @@ if (!$prompt || strlen($prompt) > $maxPromptLength) {
 }
 
 // ---- 全局生图限制 ----
-$imgConfig = require __DIR__ . '/../images20/config.php';
 $imgFeatures = $imgConfig['features'] ?? [];
 $globalDailyMax = intval($imgFeatures['global_daily_max'] ?? 0);
 $globalTotalMax = intval($imgFeatures['global_total_max'] ?? 0);
@@ -74,9 +76,8 @@ if ($isAdmin) {
 // else: 免费生成，不扣积分
 
 // ---- 加载 images20 API 配置（尝试所有可用 profile） ----
-$config = require __DIR__ . '/../images20/config.php';
-$active = $config['active'] ?? 'default';
-$profiles = $config['profiles'] ?? [];
+$active = $imgConfig['active'] ?? 'default';
+$profiles = $imgConfig['profiles'] ?? [];
 
 // 当前活跃 profile 排最前面，其余按顺序
 $orderedProfiles = [];
@@ -303,7 +304,7 @@ $updatedUser = [
     'role' => $role,
     'membership' => ['isActive' => false, 'planId' => '', 'status' => 'inactive', 'currentPeriodEnd' => null],
     'usage' => [
-        'totalGenerations' => (int)$freeCheck + 1,
+        'totalGenerations' => $freeCount + 1,
         'totalGenerationCredits' => (function() use ($pdo, $uid) {
             $stmt = $pdo->prepare("SELECT COALESCE(SUM(ABS(amount)),0) FROM balance_logs WHERE user_id = ? AND type = 'generation'");
             $stmt->execute([$uid]);
