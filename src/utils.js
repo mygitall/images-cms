@@ -198,14 +198,15 @@ function generationErrorMessage(error, language) {
   if (error === 'CREDITS_REQUIRED') return t.creditsRequired;
   if (error === 'AUTH_REQUIRED') return t.authRequired;
   if (error === 'FORBIDDEN') return t.adminOnly;
-  if (error === 'API_KEY_INVALID') return language === 'zh' ? 'API Key 无效，请在后台更新' : language === 'ko' ? 'API 키가 유효하지 않습니다. 관리자 패널에서 업데이트하세요.' : 'API Key invalid, update in Admin panel';
-  if (error === 'UPSTREAM_BUSY') return language === 'zh' ? 'API 服务超时，请稍后重试' : language === 'ko' ? 'API 서비스 시간 초과. 나중에 다시 시도해 주세요.' : 'API timed out, please try again later';
-  if (error === 'SERVER_NOT_CONFIGURED') return t.serverUnavailable;
+  if (error === 'API_KEY_INVALID') return language === 'zh' ? '服务配置异常，请联系管理员' : language === 'ko' ? '서비스 구성 오류. 관리자에게 문의하세요.' : 'Service configuration error, please contact admin';
+  if (error === 'UPSTREAM_BUSY') return language === 'zh' ? '生图服务繁忙，请稍后重试' : language === 'ko' ? '생성 서비스가 혼잡합니다. 잠시 후 다시 시도해 주세요.' : 'Generation service is busy, please try again later';
+  if (error === 'SERVER_NOT_CONFIGURED') return language === 'zh' ? '生图服务尚未配置，请联系管理员' : language === 'ko' ? '생성 서비스가 아직 구성되지 않았습니다.' : 'Generation service not configured yet';
   if (error === 'BILLING_NOT_CONFIGURED') return t.checkoutUnavailable;
   if (error === 'CHECKOUT_FAILED' || error === 'BILLING_PORTAL_FAILED') return t.checkoutFailed;
   if (error === 'INVALID_PROMPT') return t.promptRequired;
   if (error === 'Failed to fetch' || error === 'NetworkError') return language === 'zh' ? '网络连接失败，请检查网络后重试' : language === 'ko' ? '네트워크 연결 실패. 네트워크를 확인하고 다시 시도해 주세요.' : 'Network error, please check your connection and try again';
-  return t.generationFailed;
+  if (error === 'GENERATION_FAILED') return language === 'zh' ? '生图失败，请检查提示词后重试' : language === 'ko' ? '생성 실패. 프롬프트를 확인하고 다시 시도해 주세요.' : 'Generation failed, please check your prompt and try again';
+  return language === 'zh' ? '生图失败，请稍后重试' : language === 'ko' ? '생성 실패. 나중에 다시 시도해 주세요.' : 'Generation failed, please try again later';
 }
 
 function getAuthHeaders(session) {

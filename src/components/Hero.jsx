@@ -39,7 +39,7 @@ const Hero = React.memo(function Hero({ latestCases, language, repoUrl, totalCas
           <button
             className={`heroCard heroCard${index + 1}`}
             type="button"
-            aria-label={`${language === 'zh' ? '打开案例' : language === 'ko' ? '케이스 열기' : 'Open case'} ${caseItem.id}: ${caseItem.title}`}
+            aria-label={t.openCaseAria(caseItem.id, caseItem.title)}
             onClick={() => onOpenCase(caseItem)}
             key={caseItem.id}
           >

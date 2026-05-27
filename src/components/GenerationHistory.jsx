@@ -82,7 +82,7 @@ function GenerationHistory({ open, language, onClose }) {
         <button className="previewClose" type="button" onClick={onClose}><X size={20} /></button>
         <div className="historyHeader">
           <h2><ImageIcon size={20} /> {t.history}</h2>
-          <span>{language === 'zh' ? `共 ${totalCount} 张` : language === 'ko' ? `총 ${totalCount}장` : `${totalCount} images`}</span>
+          <span>{t.historyTotal(totalCount)}</span>
         </div>
         {status === 'loading' ? (
           <div className="historyState"><LoaderCircle className="spinIcon" size={22} /><span>{t.loading}</span></div>
@@ -116,7 +116,7 @@ function GenerationHistory({ open, language, onClose }) {
                   <button
                     className="historyDeleteBtn"
                     type="button"
-                    title={language === 'zh' ? '删除' : language === 'ko' ? '삭제' : 'Delete'}
+                    title={t.delete}
                     disabled={deleteBusy === item.id}
                     onClick={() => handleDelete(item)}
                   >
@@ -144,13 +144,13 @@ function GenerationHistory({ open, language, onClose }) {
         <div
           className="historyLightbox"
           role="dialog"
-          aria-label={language === 'zh' ? '查看原图' : language === 'ko' ? '원본 보기' : 'View full image'}
+          aria-label={t.viewFullImage}
           onClick={() => setLightboxImage(null)}
         >
           <button
             className="historyLightboxClose"
             type="button"
-            aria-label={language === 'zh' ? '关闭' : language === 'ko' ? '닫기' : 'Close'}
+            aria-label={t.closeDialog}
             onClick={() => setLightboxImage(null)}
           >
             <X size={24} />

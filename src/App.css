@@ -133,7 +133,7 @@ button {
 }
 
 .topbar nav a,
-.communityNavItem > button {
+.communityNavItem {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -146,73 +146,17 @@ button {
   font: inherit;
   font-weight: 700;
   letter-spacing: 0;
+  cursor: pointer;
 }
 
 .topbar nav a:hover,
-.communityNavItem > button:hover,
-.communityNavItem:focus-within > button {
+.communityNavItem:hover {
   background: rgba(255, 255, 255, 0.08);
   color: #ffffff;
 }
 
-.communityNavItem {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-}
-
-.communityNavItem > button {
-  cursor: pointer;
-}
-
-.communityNavItem > button svg {
+.communityNavItem svg {
   color: #36ef8f;
-}
-
-.communityPopover {
-  display: none;
-  position: absolute;
-  top: calc(100% + 12px);
-  left: 50%;
-  z-index: 60;
-  width: min(430px, calc(100vw - 36px));
-  pointer-events: none;
-  visibility: hidden;
-  opacity: 0;
-  transform: translate(-50%, -6px) scale(0.98);
-  transition:
-    visibility 0.18s ease,
-    opacity 0.18s ease,
-    transform 0.18s ease;
-}
-
-.communityPopover::before {
-  content: "";
-  position: absolute;
-  top: -12px;
-  left: 0;
-  width: 100%;
-  height: 14px;
-}
-
-.communityPopover img {
-  display: block;
-  width: 100%;
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  border-radius: 8px;
-  background: #ffffff;
-  box-shadow:
-    0 26px 80px rgba(0, 0, 0, 0.55),
-    0 0 32px rgba(54, 239, 143, 0.16);
-}
-
-.communityNavItem:hover .communityPopover,
-.communityNavItem:focus-within .communityPopover,
-.communityNavItem.open .communityPopover {
-  pointer-events: auto;
-  visibility: visible;
-  opacity: 1;
-  transform: translate(-50%, 0) scale(1);
 }
 
 .dropdownControl {
@@ -2883,6 +2827,7 @@ button {
 
 .adminTableWrap {
   overflow: auto;
+  -webkit-overflow-scrolling: touch;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 8px;
 }
@@ -3618,23 +3563,8 @@ button {
   }
 
   .topbar nav a,
-  .communityNavItem > button {
+  .communityNavItem {
     padding: 0 8px;
-  }
-
-  .communityPopover {
-    position: fixed;
-    top: 112px;
-    right: 12px;
-    left: 12px;
-    width: auto;
-    transform: translateY(-6px) scale(0.98);
-  }
-
-  .communityNavItem:hover .communityPopover,
-  .communityNavItem:focus-within .communityPopover,
-  .communityNavItem.open .communityPopover {
-    transform: translateY(0) scale(1);
   }
 
   .languageSwitch {
@@ -3823,9 +3753,34 @@ button {
     min-height: 224px;
   }
 
-  .adminMetricGrid,
+  .adminMetricGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .adminTrafficGrid {
     grid-template-columns: 1fr;
+  }
+
+  .adminMetricCard strong {
+    font-size: 20px;
+  }
+
+  .apiSwitchBar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .apiProfileCard .apiSwitchBtn {
+    width: 100%;
+  }
+
+  .apiEditForm {
+    flex-direction: column;
+  }
+
+  .apiEditInput {
+    width: 100% !important;
+    flex: 1 1 auto !important;
   }
 
   .accountHeader {

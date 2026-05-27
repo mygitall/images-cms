@@ -282,7 +282,7 @@ function AdminPanel({ open, language, session, casesById, onClose, onOpenCase })
         {metrics ? (
           <div className="adminDashboard">
             <section className="adminBlock compact">
-              <h3><Settings size={18} /> {language === 'zh' ? 'API 配置' : language === 'ko' ? 'API 설정' : 'API Config'}</h3>
+              <h3><Settings size={18} /> {t.apiConfigLabel}</h3>
               <div className="apiSwitchBar">
                 {apiProfiles.map((p) => (
                   <div key={p.name} className={cx('apiProfileCard', p.isActive && 'active')}>
@@ -313,33 +313,33 @@ function AdminPanel({ open, language, session, casesById, onClose, onOpenCase })
                 </button>
                 {apiStatus ? (
                   <span className="apiStatusTag">
-                    {apiStatus === 'ok' ? (language === 'zh' ? '● 正常' : language === 'ko' ? '● 정상' : '● OK') :
-                     apiStatus === 'busy' ? (language === 'zh' ? '● 繁忙' : language === 'ko' ? '● 혼잡' : '● Busy') :
-                     apiStatus === 'timeout' ? (language === 'zh' ? '● 超时' : language === 'ko' ? '● 시간 초과' : '● Timeout') :
-                     apiStatus === 'invalid' ? (language === 'zh' ? '● Key 无效' : language === 'ko' ? '● 키 무효' : '● Invalid Key') :
+                    {apiStatus === 'ok' ? t.apiOk :
+                     apiStatus === 'busy' ? t.apiBusy :
+                     apiStatus === 'timeout' ? t.apiTimeout :
+                     apiStatus === 'invalid' ? t.apiInvalid :
                      '● ' + apiStatus}
                   </span>
                 ) : null}
               </div>
               {apiModels.length > 0 ? (
                 <div className="apiModelsBar">
-                  <span>{language === 'zh' ? '可用模型' : language === 'ko' ? '모델' : 'Models'}：</span>
+                  <span>{t.modelsLabel}</span>
                   {apiModels.map((m) => <code key={m}>{m}</code>)}
                 </div>
               ) : null}
               {editProfile ? (
                 <form className="apiEditForm" onSubmit={handleApiSave}>
-                  <strong>{editProfile === 'new' ? (language === 'zh' ? '新增 API' : language === 'ko' ? 'API 추가' : 'New API') : (language === 'zh' ? '编辑 ' : language === 'ko' ? '편집 ' : 'Edit ') + editProfile.name}</strong>
+                  <strong>{editProfile === 'new' ? t.newApiLabel : t.editPrefix + editProfile.name}</strong>
                   {editProfile === 'new' ? (
-                    <input className="authInput apiEditInput" type="text" placeholder={language === 'zh' ? '名称' : language === 'ko' ? '이름' : 'Name'} value={editName} onChange={(e) => setEditName(e.target.value)} autoFocus />
+                    <input className="authInput apiEditInput" type="text" placeholder={t.nameLabel} value={editName} onChange={(e) => setEditName(e.target.value)} autoFocus />
                   ) : null}
                   <label className="apiEditLabel">Key</label>
                   <input className="authInput apiEditInput" type="text" placeholder="sk-..." value={editKey} onChange={(e) => setEditKey(e.target.value)} autoFocus={editProfile !== 'new'} />
                   <label className="apiEditLabel">URL</label>
                   <input className="authInput apiEditInput" type="text" placeholder="https://..." value={editUrl} onChange={(e) => setEditUrl(e.target.value)} />
                   <div className="apiEditActions">
-                    <button type="submit" disabled={apiSwitchBusy}>{apiSwitchBusy ? <LoaderCircle className="spinIcon" size={14} /> : <Check size={14} />} {language === 'zh' ? '保存' : language === 'ko' ? '저장' : 'Save'}</button>
-                    <button type="button" onClick={() => setEditProfile(null)}>{language === 'zh' ? '取消' : language === 'ko' ? '취소' : 'Cancel'}</button>
+                    <button type="submit" disabled={apiSwitchBusy}>{apiSwitchBusy ? <LoaderCircle className="spinIcon" size={14} /> : <Check size={14} />} {t.save}</button>
+                    <button type="button" onClick={() => setEditProfile(null)}>{t.cancel}</button>
                   </div>
                 </form>
               ) : null}

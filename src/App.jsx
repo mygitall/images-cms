@@ -509,7 +509,7 @@ function App() {
           {hotStripCases.map((caseItem) => (
           <button
             type="button"
-            aria-label={`${language === 'zh' ? '打开案例' : language === 'ko' ? '케이스 열기' : 'Open case'} ${caseItem.id}: ${caseItem.title}`}
+            aria-label={t.openCaseAria(caseItem.id, caseItem.title)}
             onClick={() => setPreview({ type: 'case', item: caseItem })}
             key={caseItem.id}
           >

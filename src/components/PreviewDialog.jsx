@@ -167,7 +167,7 @@ function PreviewDialog({
       if (file.size > 10 * 1024 * 1024) {
         if (!errorShown) {
           errorShown = true;
-          setGenerationState({ status: 'error', image: generatedImage, message: language === 'zh' ? '图片大小不能超过 10MB' : language === 'ko' ? '이미지 크기는 10MB를 초과할 수 없습니다' : 'Image must be under 10MB' });
+          setGenerationState({ status: 'error', image: generatedImage, message: t.fileTooLarge });
         }
         return;
       }
@@ -179,7 +179,7 @@ function PreviewDialog({
         });
       };
       reader.onerror = () => {
-        setGenerationState({ status: 'error', image: generatedImage, message: language === 'zh' ? '文件读取失败' : language === 'ko' ? '파일 읽기 실패' : 'Failed to read file' });
+        setGenerationState({ status: 'error', image: generatedImage, message: t.fileReadFailed });
       };
       reader.readAsDataURL(file);
     });
@@ -220,7 +220,7 @@ function PreviewDialog({
       return;
     }
     if (referenceMode && referenceImages.length === 0) {
-      setGenerationState({ status: 'error', image: generatedImage, message: language === 'zh' ? '请至少上传一张参考图' : language === 'ko' ? '최소 1장의 참조 이미지를 업로드하세요' : 'Please upload at least one reference image' });
+      setGenerationState({ status: 'error', image: generatedImage, message: t.noReferenceImage });
       return;
     }
     const prompt = editablePrompt.trim();
@@ -415,7 +415,7 @@ function PreviewDialog({
                   type="button"
                   className={cx('referenceToggle', referenceMode && 'active')}
                   onClick={toggleReferenceMode}
-                  title={language === 'zh' ? '参考图模式' : language === 'ko' ? '참조 이미지 모드' : 'Reference image mode'}
+                  title={t.referenceModeTitle}
                 >
                   <ImagePlus size={15} />
                   {language === 'zh' ? '参考图' : 'Reference'}
@@ -430,7 +430,7 @@ function PreviewDialog({
                 ) : null}
                 {referenceMode && referenceImages.length < 4 ? (
                   <button type="button" className="referenceUploadBtn" onClick={() => fileInputRef.current?.click()}>
-                    {language === 'zh' ? '上传' : language === 'ko' ? '업로드' : 'Upload'}
+                    {t.uploadBtn}
                   </button>
                 ) : null}
                 <input
@@ -464,14 +464,14 @@ function PreviewDialog({
               </div>
               {availModels.length > 0 ? (
                 <div className="generationModels">
-                  {language === 'zh' ? '模型：' : language === 'ko' ? '모델: ' : 'Models: '}
+                  {t.modelsLabel}
                   {availModels.map((m) => <code key={m}>{m}</code>)}
                 </div>
               ) : null}
               {isGenerating ? (
                 <div className="generationTimer">
                   <LoaderCircle className="spinIcon" size={16} />
-                  {language === 'zh' ? `生成中... ${genElapsed}s` : language === 'ko' ? `생성 중... ${genElapsed}초` : `Generating... ${genElapsed}s`}
+                  {t.generatingTimer(genElapsed)}
                 </div>
               ) : null}
               <button type="button" onClick={handleGenerate} disabled={generationLocked}>
