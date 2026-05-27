@@ -30,14 +30,14 @@ $role = $row['role'] ?? 'user';
 $isAdmin = ($role === 'admin');
 $freeUsed = false; // 检查是否有过免费生图
 
-// 查免费生图次数（默认1次，后台可配 new_user_free_count）
+// 查免费生图次数（0=不免费，后台可配 new_user_free_count）
 $imgConfig = require __DIR__ . '/../images20/config.php';
-$freeLimit = max(1, intval($imgConfig['features']['new_user_free_count'] ?? 1));
+$freeLimit = intval($imgConfig['features']['new_user_free_count'] ?? 1);
 
 $freeCheck = $pdo->prepare("SELECT COUNT(*) FROM gen_images WHERE user_id = ?");
 $freeCheck->execute([$uid]);
 $freeCount = (int)$freeCheck->fetchColumn();
-if ($freeCount >= $freeLimit) $freeUsed = true;
+if ($freeLimit <= 0 || $freeCount >= $freeLimit) $freeUsed = true;
 
 // ---- 读取请求 ----
 $input = json_decode(file_get_contents('php://input'), true) ?? [];
@@ -279,6 +279,8 @@ try {
     file_put_contents($uploadsDir . '/' . $imageFilename, $imageData);
 } catch (\Throwable $e) {
     $pdo->rollBack();
+    @file_put_contents(__DIR__ . '/../uploads/db_error.log',
+        date('Y-m-d H:i:s') . ' user=' . $uid . ' cost=' . $costAmount . ' balance=' . $balance . ' ' . $e->getMessage() . "\n", FILE_APPEND);
 }
 
 // ---- 返回结果 ----
