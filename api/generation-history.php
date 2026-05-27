@@ -15,12 +15,25 @@ if (!$user) {
 }
 
 $uid = (int)$user['id'];
+$offset = max(0, (int)($_GET['offset'] ?? 0));
+$limit = 20;
+
+// 查询真实总数
+$totalStmt = $pdo->prepare('SELECT COUNT(*) FROM gen_images WHERE user_id = ? AND deleted_at IS NULL');
+$totalStmt->execute([$uid]);
+$totalCount = (int)$totalStmt->fetchColumn();
 
 $stmt = $pdo->prepare(
-    'SELECT id, filename, prompt, model, aspect, resolution, created_at FROM gen_images WHERE user_id = ? AND deleted_at IS NULL ORDER BY created_at DESC LIMIT 50'
+    'SELECT id, filename, prompt, model, aspect, resolution, created_at FROM gen_images WHERE user_id = ? AND deleted_at IS NULL ORDER BY created_at DESC LIMIT ? OFFSET ?'
 );
-$stmt->execute([$uid]);
+$stmt->bindValue(1, $uid, PDO::PARAM_INT);
+$stmt->bindValue(2, $limit + 1, PDO::PARAM_INT);
+$stmt->bindValue(3, $offset, PDO::PARAM_INT);
+$stmt->execute();
 $rows = $stmt->fetchAll();
+
+$hasMore = count($rows) > $limit;
+if ($hasMore) array_pop($rows);
 
 $username = $user['username'];
 
@@ -46,5 +59,6 @@ $history = array_map(function ($row) use ($username) {
 json_out([
     'ok'      => true,
     'history' => $history,
-    'total'   => count($history)
+    'total'   => $totalCount,
+    'hasMore' => $hasMore
 ]);

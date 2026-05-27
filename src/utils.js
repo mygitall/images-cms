@@ -204,6 +204,7 @@ function generationErrorMessage(error, language) {
   if (error === 'BILLING_NOT_CONFIGURED') return t.checkoutUnavailable;
   if (error === 'CHECKOUT_FAILED' || error === 'BILLING_PORTAL_FAILED') return t.checkoutFailed;
   if (error === 'INVALID_PROMPT') return t.promptRequired;
+  if (error === 'Failed to fetch' || error === 'NetworkError') return language === 'zh' ? '网络连接失败，请检查网络后重试' : language === 'ko' ? '네트워크 연결 실패. 네트워크를 확인하고 다시 시도해 주세요.' : 'Network error, please check your connection and try again';
   return t.generationFailed;
 }
 

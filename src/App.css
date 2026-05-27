@@ -1759,6 +1759,14 @@ button {
   color: #ffe1a8;
 }
 
+.quotaCostHint {
+  margin-left: 4px;
+  color: #ffe1a8;
+  font-size: 11px;
+  font-weight: 700;
+  opacity: 0.8;
+}
+
 .generationTimer {
   display: flex;
   align-items: center;
@@ -1801,6 +1809,19 @@ button {
   background: linear-gradient(135deg, rgba(66, 230, 255, 0.22), rgba(120, 255, 185, 0.18));
   color: #ffffff;
   font-weight: 900;
+}
+
+.refAutoHint {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 8px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(103, 232, 249, 0.12);
+  color: #9eeeff;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 .generationMessage {
@@ -3773,12 +3794,6 @@ button {
   .accountDialog,
   .billingDialog {
     max-height: calc(100vh - 20px);
-  }
-
-  .authDialog,
-  .adminDialog,
-  .accountDialog,
-  .billingDialog {
     padding: 20px 16px;
   }
 

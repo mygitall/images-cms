@@ -64,7 +64,7 @@ function App() {
         if (!text) return;
         const o = document.createElement('div');
         o.style.cssText = 'position:fixed;inset:0;background:rgba(3,6,13,0.72);backdrop-filter:blur(8px);z-index:9999;display:flex;align-items:center;justify-content:center';
-        o.innerHTML = '<div style="background:rgba(9,15,32,0.88);border:1px solid rgba(255,255,255,0.14);border-radius:16px;padding:32px;max-width:480px;width:90%;text-align:center;box-shadow:0 24px 80px rgba(0,0,0,0.45)"><div style="font-size:18px;font-weight:800;color:#eef5ff;margin-bottom:16px">网站公告</div><div style="font-size:14px;color:#9aaac0;line-height:1.7;white-space:pre-wrap;margin-bottom:24px">' + text.replace(/</g,'&lt;') + '</div><button id="ann-main-close" style="padding:10px 24px;border-radius:8px;border:1px solid rgba(103,232,249,0.4);background:rgba(103,232,249,0.1);color:#9eeeff;font-weight:700;cursor:pointer;font-size:14px">我知道了</button></div>';
+        o.innerHTML = '<div style="background:rgba(9,15,32,0.88);border:1px solid rgba(255,255,255,0.14);border-radius:16px;padding:32px;max-width:480px;width:90%;text-align:center;box-shadow:0 24px 80px rgba(0,0,0,0.45)"><div style="font-size:18px;font-weight:800;color:#eef5ff;margin-bottom:16px">' + t.siteAnnouncement + '</div><div style="font-size:14px;color:#9aaac0;line-height:1.7;white-space:pre-wrap;margin-bottom:24px">' + text.replace(/</g,'&lt;') + '</div><button id="ann-main-close" style="padding:10px 24px;border-radius:8px;border:1px solid rgba(103,232,249,0.4);background:rgba(103,232,249,0.1);color:#9eeeff;font-weight:700;cursor:pointer;font-size:14px">' + t.gotIt + '</button></div>';
         document.body.appendChild(o);
         o.querySelector('#ann-main-close').onclick = () => o.remove();
         o.addEventListener('click', e => { if (e.target === o) o.remove(); });
@@ -326,6 +326,11 @@ function App() {
     setPhpSession(Boolean(user));
     setSession(user ? { phpSession: true } : null);
     if (user) setProfile(user);
+    // 登录成功后自动打开之前点击的生图案例
+    if (user && pendingCaseRef.current) {
+      setPreview({ type: 'case', item: pendingCaseRef.current });
+      pendingCaseRef.current = null;
+    }
   }
 
   function handleProfileChange(nextProfile) {
@@ -333,6 +338,7 @@ function App() {
   }
 
   const filterChangedRef = useRef(false);
+  const pendingCaseRef = useRef(null);
 
   function handleFilterChange(setter, value) {
     filterChangedRef.current = true;
@@ -503,7 +509,7 @@ function App() {
           {hotStripCases.map((caseItem) => (
           <button
             type="button"
-            aria-label={`${language === 'zh' ? '打开案例' : 'Open case'} ${caseItem.id}: ${caseItem.title}`}
+            aria-label={`${language === 'zh' ? '打开案例' : language === 'ko' ? '케이스 열기' : 'Open case'} ${caseItem.id}: ${caseItem.title}`}
             onClick={() => setPreview({ type: 'case', item: caseItem })}
             key={caseItem.id}
           >
@@ -586,6 +592,7 @@ function App() {
               onOpen={(item) => setPreview({ type: 'case', item })}
               onGenerate={(item) => {
                 if (!session?.access_token && !session?.phpSession) {
+                  pendingCaseRef.current = item;
                   setAuthOpen(true);
                 } else {
                   setPreview({ type: 'case', item });
@@ -600,14 +607,9 @@ function App() {
 
         {hasMore && (
           <div className="loadMoreBar">
-            <span>{language === 'ko'
-              ? `${visibleCases.length} / ${filteredCases.length}개 표시`
-              : language === 'zh'
-              ? `已显示 ${visibleCases.length} / ${filteredCases.length} 个案例`
-              : `Showing ${visibleCases.length} of ${filteredCases.length} cases`}
-            </span>
+            <span>{t.showingNOfM(visibleCases.length, filteredCases.length)}</span>
             <button type="button" onClick={loadMore}>
-              {language === 'zh' ? '加载更多' : language === 'ko' ? '더 보기' : 'Load more'}
+              {t.loadMoreBtn}
             </button>
           </div>
         )}

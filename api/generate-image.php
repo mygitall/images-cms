@@ -271,6 +271,11 @@ try {
     $pdo->prepare('INSERT INTO gen_images (user_id, filename, prompt, model, aspect, resolution) VALUES (?, ?, ?, ?, ?, ?)')
         ->execute([$uid, $imageFilename, $prompt, 'gpt-image-2', '1:1', '1k']);
 
+    // 标记免费次数已使用，确保刷新后状态正确
+    if ($freeUsed) {
+        $pdo->prepare('UPDATE users SET free_used = 1 WHERE id = ? AND free_used = 0')->execute([$uid]);
+    }
+
     $pdo->commit();
 
     // 事务成功后才写入文件，避免回滚产生孤儿文件

@@ -72,13 +72,13 @@ function AuthModal({ open, language, onClose, onSignIn }) {
         <div className="authIcon">
           <UserCircle size={28} />
         </div>
-        <h2 id="auth-title">{authMode === 'login' ? (language === 'zh' ? '登录' : 'Sign In') : (language === 'zh' ? '注册' : 'Register')}</h2>
-        <p>{authMode === 'login' ? t.signInSubtitle : (language === 'zh' ? '注册账号后即可使用全部功能' : 'Create an account to unlock all features.')}</p>
+        <h2 id="auth-title">{authMode === 'login' ? (language === 'zh' ? '登录' : language === 'ko' ? '로그인' : 'Sign In') : (language === 'zh' ? '注册' : language === 'ko' ? '회원가입' : 'Register')}</h2>
+        <p>{authMode === 'login' ? t.signInSubtitle : (language === 'zh' ? '注册账号后即可使用全部功能' : language === 'ko' ? '회원가입 후 모든 기능을 이용할 수 있습니다' : 'Create an account to unlock all features.')}</p>
         <form onSubmit={handleSubmit} className="authForm">
           <input
             className="authInput"
             type="text"
-            placeholder={language === 'zh' ? '用户名' : 'Username'}
+            placeholder={language === 'zh' ? '用户名' : language === 'ko' ? '사용자 이름' : 'Username'}
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             autoFocus
@@ -86,7 +86,7 @@ function AuthModal({ open, language, onClose, onSignIn }) {
           <input
             className="authInput"
             type="password"
-            placeholder={language === 'zh' ? '密码' : 'Password'}
+            placeholder={language === 'zh' ? '密码' : language === 'ko' ? '비밀번호' : 'Password'}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
@@ -94,20 +94,20 @@ function AuthModal({ open, language, onClose, onSignIn }) {
             <input
               className="authInput"
               type="password"
-              placeholder={language === 'zh' ? '确认密码' : 'Confirm Password'}
+              placeholder={language === 'zh' ? '确认密码' : language === 'ko' ? '비밀번호 확인' : 'Confirm Password'}
               value={password2}
               onChange={(e) => setPassword2(e.target.value)}
             />
           ) : null}
           <button className="googleButton" type="submit" disabled={status === 'loading'}>
             {status === 'loading' ? <LoaderCircle className="spinIcon" size={18} /> : authMode === 'login' ? <LogIn size={18} /> : <UserPlus size={18} />}
-            {authMode === 'login' ? (language === 'zh' ? '登录' : 'Sign In') : (language === 'zh' ? '注册' : 'Register')}
+            {authMode === 'login' ? (language === 'zh' ? '登录' : language === 'ko' ? '로그인' : 'Sign In') : (language === 'zh' ? '注册' : language === 'ko' ? '회원가입' : 'Register')}
           </button>
         </form>
         <button className="authSwitch" type="button" onClick={toggleMode}>
           {authMode === 'login'
-            ? (language === 'zh' ? '没有账号？去注册' : "Don't have an account? Register")
-            : (language === 'zh' ? '已有账号？去登录' : 'Already have an account? Sign In')}
+            ? (language === 'zh' ? '没有账号？去注册' : language === 'ko' ? '계정이 없으신가요? 회원가입' : "Don't have an account? Register")
+            : (language === 'zh' ? '已有账号？去登录' : language === 'ko' ? '이미 계정이 있으신가요? 로그인' : 'Already have an account? Sign In')}
         </button>
         {message ? (
           <p className={cx('authMessage', status === 'error' && 'error', status === 'sent' && 'sent')}>

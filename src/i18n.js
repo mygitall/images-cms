@@ -109,6 +109,9 @@ const copy = {
     openCase: 'View case',
     sourceCase: 'Source case',
     noGenerationTransactions: 'No generation spending yet.',
+    noGenerationHistory: 'No generation history',
+    siteAnnouncement: 'Announcement',
+    gotIt: 'Got it',
     adminPanel: 'Admin',
     history: 'History',
     loadFailed: 'Load failed',
@@ -216,7 +219,9 @@ const copy = {
     examples: 'Example Cases',
     source: 'Source',
     openOnGithub: 'Open on GitHub',
-    limit: (count) => `Showing the first ${count} results for speed. Use search or filters to narrow the gallery.`
+    limit: (count) => `Showing the first ${count} results for speed. Use search or filters to narrow the gallery.`,
+    showingNOfM: (visible, total) => `Showing ${visible} of ${total} cases`,
+    loadMoreBtn: 'Load more',
   },
   ko: {
     loading: 'GPT-Image2 케이스 로딩 중...',
@@ -325,6 +330,9 @@ const copy = {
     openCase: '케이스 보기',
     sourceCase: '원본 케이스',
     noGenerationTransactions: '아직 생성 사용 내역이 없습니다.',
+    noGenerationHistory: '생성 기록 없음',
+    siteAnnouncement: '사이트 공지',
+    gotIt: '확인',
     adminPanel: '관리자',
     history: '생성 기록',
     loadFailed: '로드 실패',
@@ -432,7 +440,9 @@ const copy = {
     examples: '예시 케이스',
     source: '출처',
     openOnGithub: 'GitHub에서 열기',
-    limit: (count) => `속도를 위해 처음 ${count}개 결과만 표시합니다. 검색 또는 필터로 범위를 좁혀보세요.`
+    limit: (count) => `속도를 위해 처음 ${count}개 결과만 표시합니다. 검색 또는 필터로 범위를 좁혀보세요.`,
+    showingNOfM: (visible, total) => `${visible} / ${total}개 표시`,
+    loadMoreBtn: '더 보기',
   },
   zh: {
     loading: '正在加载 GPT-Image2 案例...',
@@ -544,6 +554,9 @@ const copy = {
     openCase: '查看案例',
     sourceCase: '关联案例',
     noGenerationTransactions: '暂无生图消耗记录。',
+    noGenerationHistory: '暂无生图记录',
+    siteAnnouncement: '网站公告',
+    gotIt: '我知道了',
     adminPanel: '管理后台',
     history: '生图历史',
     loadFailed: '加载失败',
@@ -651,7 +664,9 @@ const copy = {
     examples: '关联案例',
     source: '来源',
     openOnGithub: '在 GitHub 打开',
-    limit: (count) => `为了保证浏览速度，当前展示前 ${count} 条结果。可以用搜索或筛选缩小范围。`
+    limit: (count) => `为了保证浏览速度，当前展示前 ${count} 条结果。可以用搜索或筛选缩小范围。`,
+    showingNOfM: (visible, total) => `已显示 ${visible} / ${total} 个案例`,
+    loadMoreBtn: '加载更多',
   }
 };
 

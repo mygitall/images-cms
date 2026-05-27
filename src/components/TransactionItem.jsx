@@ -28,7 +28,7 @@ function TransactionItem({ transaction, language, casesById, onOpenCase }) {
         ) : null}
       </div>
       <strong className={transaction.amount >= 0 ? 'positive' : 'negative'}>
-        {transaction.amount >= 0 ? '+' : ''}{transaction.amount}
+        {transaction.amount >= 0 ? '+' : ''}¥{Number(transaction.amount || 0).toFixed(2)}
       </strong>
       <em>
         {transaction.createdAt

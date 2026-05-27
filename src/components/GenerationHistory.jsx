@@ -8,6 +8,9 @@ function GenerationHistory({ open, language, onClose }) {
   const t = copy[language];
   const [items, setItems] = useState([]);
   const [status, setStatus] = useState('idle');
+  const [totalCount, setTotalCount] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [deleteBusy, setDeleteBusy] = useState(null);
   const [lightboxImage, setLightboxImage] = useState(null);
   useBodyScrollLock(open);
@@ -18,9 +21,25 @@ function GenerationHistory({ open, language, onClose }) {
       .then((r) => r.json())
       .then((payload) => {
         setItems(payload?.ok ? payload.history || [] : []);
+        setHasMore(payload?.hasMore || false);
+        setTotalCount(payload?.total || 0);
         setStatus('ready');
       })
       .catch(() => setStatus('error'));
+  }
+
+  function loadMore() {
+    setLoadingMore(true);
+    fetch(`/api/generation-history?offset=${items.length}`)
+      .then((r) => r.json())
+      .then((payload) => {
+        if (payload?.ok) {
+          setItems((prev) => [...prev, ...(payload.history || [])]);
+          setHasMore(payload?.hasMore || false);
+        }
+        setLoadingMore(false);
+      })
+      .catch(() => setLoadingMore(false));
   }
 
   async function handleDelete(item) {
@@ -63,7 +82,7 @@ function GenerationHistory({ open, language, onClose }) {
         <button className="previewClose" type="button" onClick={onClose}><X size={20} /></button>
         <div className="historyHeader">
           <h2><ImageIcon size={20} /> {t.history}</h2>
-          <span>{language === 'zh' ? `共 ${items.length} 张` : `${items.length} images`}</span>
+          <span>{language === 'zh' ? `共 ${totalCount} 张` : language === 'ko' ? `총 ${totalCount}장` : `${totalCount} images`}</span>
         </div>
         {status === 'loading' ? (
           <div className="historyState"><LoaderCircle className="spinIcon" size={22} /><span>{t.loading}</span></div>
@@ -75,7 +94,7 @@ function GenerationHistory({ open, language, onClose }) {
             </button>
           </div>
         ) : items.length === 0 ? (
-          <div className="historyState"><p>{language === 'zh' ? '暂无生图记录' : 'No generation history'}</p></div>
+          <div className="historyState"><p>{t.noGenerationHistory}</p></div>
         ) : (
           <div className="historyGrid">
             {items.map((item) => {
@@ -97,7 +116,7 @@ function GenerationHistory({ open, language, onClose }) {
                   <button
                     className="historyDeleteBtn"
                     type="button"
-                    title={language === 'zh' ? '删除' : 'Delete'}
+                    title={language === 'zh' ? '删除' : language === 'ko' ? '삭제' : 'Delete'}
                     disabled={deleteBusy === item.id}
                     onClick={() => handleDelete(item)}
                   >
@@ -112,18 +131,26 @@ function GenerationHistory({ open, language, onClose }) {
             )})}
           </div>
         )}
+        {hasMore && status === 'ready' ? (
+          <div className="loadMoreBar">
+            <button type="button" onClick={loadMore} disabled={loadingMore}>
+              {loadingMore ? <LoaderCircle className="spinIcon" size={16} /> : null}
+              {t.loadMoreBtn}
+            </button>
+          </div>
+        ) : null}
       </section>
       {lightboxImage ? (
         <div
           className="historyLightbox"
           role="dialog"
-          aria-label={language === 'zh' ? '查看原图' : 'View full image'}
+          aria-label={language === 'zh' ? '查看原图' : language === 'ko' ? '원본 보기' : 'View full image'}
           onClick={() => setLightboxImage(null)}
         >
           <button
             className="historyLightboxClose"
             type="button"
-            aria-label={language === 'zh' ? '关闭' : 'Close'}
+            aria-label={language === 'zh' ? '关闭' : language === 'ko' ? '닫기' : 'Close'}
             onClick={() => setLightboxImage(null)}
           >
             <X size={24} />

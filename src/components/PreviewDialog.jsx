@@ -39,8 +39,10 @@ function PreviewDialog({
   const [genElapsed, setGenElapsed] = useState(0);
   const genTimerRef = useRef(null);
   const [availModels, setAvailModels] = useState([]);
+  const [genCost, setGenCost] = useState(0.09);
   const [referenceMode, setReferenceMode] = useState(false);
   const [referenceImages, setReferenceImages] = useState([]);
+  const [refAutoHint, setRefAutoHint] = useState(false);
   const fileInputRef = useRef(null);
   useBodyScrollLock(Boolean(preview));
 
@@ -63,6 +65,13 @@ function PreviewDialog({
     fetch('/api/models')
       .then((r) => r.json())
       .then((p) => { if (p?.ok) setAvailModels(p.models || []); })
+      .catch(() => {});
+    fetch('/images20/api/features.php')
+      .then(r => r.json())
+      .then(f => {
+        const cost = parseFloat(f.gen_cost_yuan);
+        if (cost > 0) setGenCost(cost);
+      })
       .catch(() => {});
   }, [preview?.type, preview?.item?.id]);
 
@@ -145,24 +154,35 @@ function PreviewDialog({
   const quotaText = isSignedIn ? getGenerationQuotaText(profile, language) : t.authRequired;
 
   function handleFileChange(event) {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    if (file.size > 10 * 1024 * 1024) {
+    const files = Array.from(event.target.files || []);
+    if (!files.length) return;
+    const remaining = 4 - referenceImages.length;
+    if (remaining <= 0) {
       event.target.value = '';
-      setGenerationState({ status: 'error', image: generatedImage, message: language === 'zh' ? '图片大小不能超过 10MB' : 'Image must be under 10MB' });
       return;
     }
-    const reader = new FileReader();
-    reader.onload = () => {
-      setReferenceImages((prev) => {
-        if (prev.length >= 4) return prev;
-        return [...prev, reader.result];
-      });
-    };
-    reader.onerror = () => {
-      setGenerationState({ status: 'error', image: generatedImage, message: language === 'zh' ? '文件读取失败' : 'Failed to read file' });
-    };
-    reader.readAsDataURL(file);
+    const toProcess = files.slice(0, remaining);
+    let errorShown = false;
+    toProcess.forEach((file) => {
+      if (file.size > 10 * 1024 * 1024) {
+        if (!errorShown) {
+          errorShown = true;
+          setGenerationState({ status: 'error', image: generatedImage, message: language === 'zh' ? '图片大小不能超过 10MB' : language === 'ko' ? '이미지 크기는 10MB를 초과할 수 없습니다' : 'Image must be under 10MB' });
+        }
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        setReferenceImages((prev) => {
+          if (prev.length >= 4) return prev;
+          return [...prev, reader.result];
+        });
+      };
+      reader.onerror = () => {
+        setGenerationState({ status: 'error', image: generatedImage, message: language === 'zh' ? '文件读取失败' : language === 'ko' ? '파일 읽기 실패' : 'Failed to read file' });
+      };
+      reader.readAsDataURL(file);
+    });
     event.target.value = '';
   }
 
@@ -179,6 +199,8 @@ function PreviewDialog({
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0);
           setReferenceImages([canvas.toDataURL('image/jpeg', 0.9)]);
+          setRefAutoHint(true);
+          setTimeout(() => setRefAutoHint(false), 3000);
         };
         img.onerror = () => {};
         img.src = image;
@@ -186,6 +208,7 @@ function PreviewDialog({
     } else {
       setReferenceMode(false);
       setReferenceImages([]);
+      setRefAutoHint(false);
     }
   }
 
@@ -197,7 +220,7 @@ function PreviewDialog({
       return;
     }
     if (referenceMode && referenceImages.length === 0) {
-      setGenerationState({ status: 'error', image: generatedImage, message: language === 'zh' ? '请至少上传一张参考图' : 'Please upload at least one reference image' });
+      setGenerationState({ status: 'error', image: generatedImage, message: language === 'zh' ? '请至少上传一张参考图' : language === 'ko' ? '최소 1장의 참조 이미지를 업로드하세요' : 'Please upload at least one reference image' });
       return;
     }
     const prompt = editablePrompt.trim();
@@ -244,7 +267,9 @@ function PreviewDialog({
           setGenerationState({ status: 'error', image: '', message: t.promptRequired });
           return;
         }
-        throw new Error(payload.error || 'GENERATION_FAILED');
+        const err = new Error(payload.error || 'GENERATION_FAILED');
+        err.detail = payload.message || '';
+        throw err;
       }
 
       if (isTemplate || isFree) {
@@ -263,7 +288,7 @@ function PreviewDialog({
       setGenerationState({
         status: 'error',
         image: generatedImage,
-        message: generationErrorMessage(error.message, language)
+        message: error.detail || generationErrorMessage(error.message, language)
       });
     }
   }
@@ -390,7 +415,7 @@ function PreviewDialog({
                   type="button"
                   className={cx('referenceToggle', referenceMode && 'active')}
                   onClick={toggleReferenceMode}
-                  title={language === 'zh' ? '参考图模式' : 'Reference image mode'}
+                  title={language === 'zh' ? '参考图模式' : language === 'ko' ? '참조 이미지 모드' : 'Reference image mode'}
                 >
                   <ImagePlus size={15} />
                   {language === 'zh' ? '参考图' : 'Reference'}
@@ -398,15 +423,21 @@ function PreviewDialog({
                     <span className="referenceCount">{referenceImages.length}/4</span>
                   ) : null}
                 </button>
+                {refAutoHint ? (
+                  <span className="refAutoHint">
+                    {language === 'zh' ? '已自动加载案例原图作为参考' : language === 'ko' ? '케이스 이미지가 참조로 자동 추가됨' : 'Case image auto-added as reference'}
+                  </span>
+                ) : null}
                 {referenceMode && referenceImages.length < 4 ? (
                   <button type="button" className="referenceUploadBtn" onClick={() => fileInputRef.current?.click()}>
-                    {language === 'zh' ? '上传' : 'Upload'}
+                    {language === 'zh' ? '上传' : language === 'ko' ? '업로드' : 'Upload'}
                   </button>
                 ) : null}
                 <input
                   ref={fileInputRef}
                   type="file"
                   accept="image/*"
+                  multiple
                   style={{ display: 'none' }}
                   onChange={handleFileChange}
                 />
@@ -425,10 +456,15 @@ function PreviewDialog({
               ) : null}
               <div className={cx('generationQuota', (!isSignedIn || isOutOfCredits) && 'used')}>
                 {quotaText}
+                {isOutOfCredits ? (
+                  <span className="quotaCostHint">
+                    {language === 'zh' ? `（${genCost.toFixed(2)} 元/次）` : language === 'ko' ? `(${genCost.toFixed(2)} 위안/회)` : `($${genCost.toFixed(2)}/gen)`}
+                  </span>
+                ) : null}
               </div>
               {availModels.length > 0 ? (
                 <div className="generationModels">
-                  {language === 'zh' ? '模型：' : 'Models: '}
+                  {language === 'zh' ? '模型：' : language === 'ko' ? '모델: ' : 'Models: '}
                   {availModels.map((m) => <code key={m}>{m}</code>)}
                 </div>
               ) : null}
@@ -446,7 +482,7 @@ function PreviewDialog({
                 <button type="button" className="continueGenBtn" onClick={() => {
                   setReferenceMode(true);
                   setReferenceImages([generatedImage]);
-                  setGenerationState({ status: 'idle', image: '', message: '', prompt: '', savedAt: '' });
+                  setGenerationState((prev) => ({ ...prev, status: 'idle', message: '', prompt: '', savedAt: '' }));
                 }}>
                   <RefreshCw size={15} />
                   {language === 'zh' ? '基于此图继续生图' : language === 'ko' ? '이 이미지로 계속 생성' : 'Continue from this image'}
