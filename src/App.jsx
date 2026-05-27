@@ -54,6 +54,27 @@ function App() {
   const repoUrl = siteData?.repository || fallbackRepoUrl;
   const t = copy[language] || copy.en;
 
+  // 网站公告弹窗
+  useEffect(() => {
+    fetch('/images20/api/features.php')
+      .then(r => r.json())
+      .then(f => {
+        if (!f.site_announcement || f.site_announcement === 'false') return;
+        const text = f.site_announcement_text || '';
+        if (!text) return;
+        const key = 'ann_' + text.length + '_' + text.charCodeAt(0);
+        if (localStorage.getItem(key) === '1') return;
+        const o = document.createElement('div');
+        o.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center';
+        o.innerHTML = '<div style="background:#1f2937;border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:32px;max-width:480px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5)"><div style="font-size:18px;font-weight:700;color:#e5e7eb;margin-bottom:16px">网站公告</div><div style="font-size:14px;color:#94a3b8;line-height:1.7;white-space:pre-wrap;margin-bottom:24px">' + text.replace(/</g,'&lt;') + '</div><button id="ann-main-close" style="padding:10px 24px;border-radius:8px;border:none;background:#22d3ee;color:#0b1220;font-weight:700;cursor:pointer;font-size:14px">我知道了</button></div>';
+        document.body.appendChild(o);
+        const cb = () => { o.remove(); localStorage.setItem(key, '1'); };
+        o.querySelector('#ann-main-close').onclick = cb;
+        o.addEventListener('click', e => { if (e.target === o) cb(); });
+      })
+      .catch(() => {});
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
     Promise.allSettled([
