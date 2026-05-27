@@ -564,6 +564,28 @@
   font-weight: 700;
 }
 
+.continueGenBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+  padding: 0 12px;
+  border: 1px solid rgba(147, 51, 234, 0.4);
+  border-radius: 6px;
+  background: rgba(147, 51, 234, 0.08);
+  color: #c4b5fd;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  margin-top: 8px;
+}
+
+.continueGenBtn:hover {
+  border-color: rgba(147, 51, 234, 0.7);
+  background: rgba(147, 51, 234, 0.15);
+}
+
 @media (max-width: 900px) {
   .previewDialog {
     grid-template-columns: 1fr;

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  ArrowUpRight, Check, Copy, Eye, Heart, ImageIcon, ImagePlus, LoaderCircle, X
+  ArrowUpRight, Check, Copy, Eye, Heart, ImageIcon, ImagePlus, LoaderCircle, RefreshCw, X
 } from 'lucide-react';
 import { copy as i18nCopy } from '../i18n';
 import {
@@ -442,6 +442,16 @@ function PreviewDialog({
                 {isGenerating ? <LoaderCircle className="spinIcon" size={17} /> : <ImageIcon size={17} />}
                 {isGenerating ? t.generating : isOutOfCredits ? t.buyCredits : isSignedIn ? t.generateImage : t.signInToGenerate}
               </button>
+              {generatedImage ? (
+                <button type="button" className="continueGenBtn" onClick={() => {
+                  setReferenceMode(true);
+                  setReferenceImages([generatedImage]);
+                  setGenerationState({ status: 'idle', image: '', message: '', prompt: '', savedAt: '' });
+                }}>
+                  <RefreshCw size={15} />
+                  {language === 'zh' ? '基于此图继续生图' : language === 'ko' ? '이 이미지로 계속 생성' : 'Continue from this image'}
+                </button>
+              ) : null}
               {generationState.status === 'error' ? (
                 <p className="generationMessage">{generationState.message}</p>
               ) : null}
