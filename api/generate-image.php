@@ -46,6 +46,20 @@ if (!$prompt || strlen($prompt) > $maxPromptLength) {
     json_out(['ok' => false, 'error' => 'INVALID_PROMPT'], 400);
 }
 
+// ---- 全局生图限制 ----
+$imgConfig = require __DIR__ . '/../images20/config.php';
+$imgFeatures = $imgConfig['features'] ?? [];
+$globalDailyMax = intval($imgFeatures['global_daily_max'] ?? 0);
+$globalTotalMax = intval($imgFeatures['global_total_max'] ?? 0);
+if ($globalDailyMax > 0) {
+    $cnt = $pdo->query("SELECT COUNT(*) FROM gen_images WHERE DATE(created_at) = CURDATE()")->fetchColumn();
+    if ($cnt >= $globalDailyMax) json_out(['ok' => false, 'error' => 'LIMIT_REACHED', 'message' => '全站今日生图已达上限，请明天再试'], 403);
+}
+if ($globalTotalMax > 0) {
+    $cnt = $pdo->query("SELECT COUNT(*) FROM gen_images")->fetchColumn();
+    if ($cnt >= $globalTotalMax) json_out(['ok' => false, 'error' => 'LIMIT_REACHED', 'message' => '全站总生图已达上限'], 403);
+}
+
 // ---- 余额检查 ----
 $creditAmount = 0;
 if ($isAdmin) {

@@ -30,17 +30,33 @@ $input = json_decode(file_get_contents('php://input'), true) ?? [];
 
 // ========== 注册 ==========
 if ($action === 'register') {
+    $config = @(require __DIR__ . '/../images20/config.php');
+    $features = $config['features'] ?? [];
+
+    // 禁止注册
+    if (!empty($features['disable_register'])) {
+        $msg = $features['register_block_msg'] ?? '暂不开放注册';
+        json_out(['error' => $msg], 403);
+    }
+
     $username = trim($input['username'] ?? '');
     $password = $input['password'] ?? '';
 
     if (strlen($username) < 2 || strlen($username) > 50) json_out(['error' => '用户名 2-50 位'], 400);
     if (strlen($password) < 4) json_out(['error' => '密码至少 4 位'], 400);
 
-    // 检查是否禁止注册
-    $config = @(require __DIR__ . '/../images20/config.php');
-    $features = $config['features'] ?? [];
-    if (!empty($features['disable_register'])) {
-        json_out(['error' => '暂不开放注册'], 403);
+    // IP 黑名单
+    $bannedIPs = array_map('trim', explode(',', $features['banned_ips_list'] ?? ''));
+    $clientIP  = $_SERVER['REMOTE_ADDR'] ?? '';
+    if (!empty($bannedIPs[0]) && in_array($clientIP, $bannedIPs)) {
+        json_out(['error' => '当前网络环境不支持注册'], 403);
+    }
+
+    // 每日注册上限
+    $dailyMax = intval($features['daily_reg_max'] ?? 0);
+    if ($dailyMax > 0) {
+        $cnt = $pdo->query("SELECT COUNT(*) FROM users WHERE DATE(created_at) = CURDATE()")->fetchColumn();
+        if ($cnt >= $dailyMax) json_out(['error' => '今日注册名额已满，请明天再试'], 403);
     }
 
     $stmt = $pdo->prepare('SELECT id FROM users WHERE username = ?');
