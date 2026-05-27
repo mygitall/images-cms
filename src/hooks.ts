@@ -1,21 +1,30 @@
-import { useEffect, useRef, useState } from 'react';
-import { copyToClipboard, sendGaPageView, pagePathWithHash } from './utils';
+import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react';
+import { copyToClipboard, sendGaPageView } from './utils';
 
-const gaMeasurementId = import.meta.env.VITE_GA_MEASUREMENT_ID;
+const gaMeasurementId = (import.meta as any).env?.VITE_GA_MEASUREMENT_ID as string | undefined;
+
+interface ScrollLockState {
+  scrollY: number;
+  bodyOverflow: string;
+  bodyPosition: string;
+  bodyTop: string;
+  bodyWidth: string;
+  htmlOverflow: string;
+}
 
 let bodyScrollLockCount = 0;
-let bodyScrollLockState = null;
+let bodyScrollLockState: ScrollLockState | null = null;
 
-function useGaPageViews() {
+function useGaPageViews(): void {
   useEffect(() => {
     if (!gaMeasurementId) return undefined;
 
-    window.dataLayer = window.dataLayer || [];
-    window.gtag = window.gtag || function gtag() {
-      window.dataLayer.push(arguments);
+    (window as any).dataLayer = (window as any).dataLayer || [];
+    (window as any).gtag = (window as any).gtag || function gtag(...args: any[]) {
+      (window as any).dataLayer.push(args);
     };
-    window.gtag('js', new Date());
-    window.gtag('config', gaMeasurementId, { send_page_view: false });
+    (window as any).gtag('js', new Date());
+    (window as any).gtag('config', gaMeasurementId, { send_page_view: false });
 
     const existingScript = document.querySelector(`script[data-ga4="${gaMeasurementId}"]`);
     if (!existingScript) {
@@ -36,7 +45,7 @@ function useGaPageViews() {
   }, []);
 }
 
-function useBodyScrollLock(active) {
+function useBodyScrollLock(active: boolean): void {
   useEffect(() => {
     if (!active) return undefined;
 
@@ -75,35 +84,39 @@ function useBodyScrollLock(active) {
   }, [active]);
 }
 
-function useCopy() {
-  const [copiedId, setCopiedId] = useState(null);
+function useCopy(): {
+  copiedId: string | null;
+  copyPrompt: (caseItem: { id: number; prompt: string }) => Promise<void>;
+  copyText: (text: string, id: string) => Promise<void>;
+} {
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  async function copyText(text, id) {
+  async function copyText(text: string, id: string): Promise<void> {
     await copyToClipboard(text);
     setCopiedId(id);
     window.setTimeout(() => setCopiedId(null), 1600);
   }
 
-  async function copyPrompt(caseItem) {
+  async function copyPrompt(caseItem: { id: number; prompt: string }): Promise<void> {
     await copyText(caseItem.prompt, `case-${caseItem.id}`);
   }
 
   return { copiedId, copyPrompt, copyText };
 }
 
-function useDropdownDismiss(open, setOpen) {
-  const ref = useRef(null);
+function useDropdownDismiss(open: boolean, setOpen: Dispatch<SetStateAction<boolean>>): React.RefObject<any> {
+  const ref = useRef<any>(null);
 
   useEffect(() => {
     if (!open) return undefined;
 
-    function handlePointerDown(event) {
-      if (ref.current && !ref.current.contains(event.target)) {
+    function handlePointerDown(event: PointerEvent): void {
+      if (ref.current && !ref.current.contains(event.target as Node)) {
         setOpen(false);
       }
     }
 
-    function handleKeyDown(event) {
+    function handleKeyDown(event: KeyboardEvent): void {
       if (event.key === 'Escape') {
         setOpen(false);
       }

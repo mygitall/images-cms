@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { copy } from '../i18n';
+import { copy } from '../i18n.ts';
 
 const REQUIRED_KEYS = [
   'loading', 'brand', 'navCases', 'navSkill', 'navTemplates', 'navCommunity',

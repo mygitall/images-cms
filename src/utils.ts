@@ -1,70 +1,73 @@
 import { copy, labelMap } from './i18n';
+import type {
+  CaseItem, StyleLibrary, UserProfile, Session, TemplateItem,
+  Transaction, FavoriteRow, Language
+} from './types';
 
 const fallbackRepoUrl = 'https://github.com/freestylefly/awesome-gpt-image-2';
-const gaMeasurementId = import.meta.env.VITE_GA_MEASUREMENT_ID;
+const gaMeasurementId = (import.meta as any).env?.VITE_GA_MEASUREMENT_ID as string | undefined;
 const GENERATED_TESTS_STORAGE_KEY = 'gpt-image-2-generated-tests:v1';
 const MAX_SAVED_GENERATIONS = 12;
 const HERO_CASE_COUNT = 5;
 const HOT_STRIP_CASE_COUNT = 8;
 
-function cx(...classes) {
+function cx(...classes: (string | false | null | undefined)[]): string {
   return classes.filter(Boolean).join(' ');
 }
 
-function textFor(value, language) {
+function textFor(value: string | Record<string, string> | undefined | null, language: Language): string {
   if (!value) return '';
   if (typeof value === 'string') return value;
   return value[language] || value.en || value.zh || '';
 }
 
-function listFor(value, language) {
-  const localized = value?.[language] || value?.en || value?.zh || [];
+function listFor(value: Record<string, string[]> | undefined | null, language: Language): string[] {
+  const localized = (value as any)?.[language] || (value as any)?.en || (value as any)?.zh || [];
   return Array.isArray(localized) ? localized : [];
 }
 
-function compactText(value, maxLength = 180) {
+function compactText(value: string | undefined | null, maxLength = 180): string {
   if (!value || value.length <= maxLength) return value || '';
   return `${value.slice(0, maxLength)}...`;
 }
 
-function pagePathWithHash() {
+function pagePathWithHash(): string {
   return `${window.location.pathname}${window.location.search}${window.location.hash}`;
 }
 
-function sendGaPageView() {
-  if (!gaMeasurementId || typeof window.gtag !== 'function') return;
-  window.gtag('event', 'page_view', {
+function sendGaPageView(): void {
+  if (!gaMeasurementId || typeof (window as any).gtag !== 'function') return;
+  (window as any).gtag('event', 'page_view', {
     page_title: document.title,
     page_location: window.location.href,
     page_path: pagePathWithHash()
   });
 }
 
-function formatNumber(value) {
+function formatNumber(value: number | undefined | null): string {
   return new Intl.NumberFormat('en-US').format(Number(value || 0));
 }
 
-function formatShortDate(value, language) {
+function formatShortDate(value: string | number | undefined | null, language: Language): string {
   if (!value) return '-';
   const normalized = /^\d{8}$/.test(String(value))
     ? `${String(value).slice(0, 4)}-${String(value).slice(4, 6)}-${String(value).slice(6, 8)}T00:00:00Z`
     : value;
-  return new Date(normalized).toLocaleDateString(language === 'zh' ? 'zh-CN' : language === 'ko' ? 'ko-KR' : 'en-US', {
-    month: 'short',
-    day: 'numeric'
-  });
+  return new Date(normalized as string).toLocaleDateString(
+    language === 'zh' ? 'zh-CN' : language === 'ko' ? 'ko-KR' : 'en-US',
+    { month: 'short', day: 'numeric' }
+  );
 }
 
-function formatRangeDate(value, language) {
+function formatRangeDate(value: string | undefined | null, language: Language): string {
   if (!value) return '-';
-  return new Date(`${value}T00:00:00`).toLocaleDateString(language === 'zh' ? 'zh-CN' : language === 'ko' ? 'ko-KR' : 'en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric'
-  });
+  return new Date(`${value}T00:00:00`).toLocaleDateString(
+    language === 'zh' ? 'zh-CN' : language === 'ko' ? 'ko-KR' : 'en-US',
+    { month: 'short', day: 'numeric', year: 'numeric' }
+  );
 }
 
-function dateInputValue(daysAgo = 0) {
+function dateInputValue(daysAgo = 0): string {
   const date = new Date();
   date.setDate(date.getDate() - daysAgo);
   const year = date.getFullYear();
@@ -73,17 +76,17 @@ function dateInputValue(daysAgo = 0) {
   return `${year}-${month}-${day}`;
 }
 
-function firstNumber(...values) {
+function firstNumber(...values: (number | undefined | null)[]): number {
   const value = values.find((item) => item !== undefined && item !== null);
   return Number(value || 0);
 }
 
-function percentOf(value, max) {
+function percentOf(value: number, max: number): number {
   if (!max) return 0;
   return Math.max(4, Math.round((Number(value || 0) / max) * 100));
 }
 
-function readSavedGenerations() {
+function readSavedGenerations(): Record<string, { image?: string; prompt?: string; savedAt?: string }> {
   try {
     return JSON.parse(localStorage.getItem(GENERATED_TESTS_STORAGE_KEY) || '{}');
   } catch {
@@ -91,19 +94,19 @@ function readSavedGenerations() {
   }
 }
 
-function getSavedGeneration(caseId) {
+function getSavedGeneration(caseId: number | string): { image: string; prompt?: string; savedAt?: string } | null {
   const saved = readSavedGenerations()[String(caseId)];
   return saved?.image ? saved : null;
 }
 
-function saveGeneratedTest(caseId, entry) {
+function saveGeneratedTest(caseId: number | string, entry: { image: string; prompt: string; savedAt: string }): void {
   const key = String(caseId);
   const saved = readSavedGenerations();
   saved[key] = entry;
 
   const latestEntries = Object.entries(saved)
     .filter(([, value]) => value?.image)
-    .sort(([, a], [, b]) => new Date(b.savedAt || 0) - new Date(a.savedAt || 0))
+    .sort(([, a], [, b]) => new Date((b as any).savedAt || 0).getTime() - new Date((a as any).savedAt || 0).getTime())
     .slice(0, MAX_SAVED_GENERATIONS);
 
   try {
@@ -113,13 +116,12 @@ function saveGeneratedTest(caseId, entry) {
     try {
       localStorage.setItem(GENERATED_TESTS_STORAGE_KEY, JSON.stringify(Object.fromEntries(compactEntries)));
     } catch {
-      // Browser storage can be full or blocked. The generated image still stays
-      // visible for the current dialog state when persistence is unavailable.
+      // Browser storage can be full or blocked
     }
   }
 }
 
-function normalizeFavoriteRows(favorites = []) {
+function normalizeFavoriteRows(favorites: any[] = []): FavoriteRow[] {
   const rows = Array.isArray(favorites) ? favorites : [];
   return rows
     .map((favorite) => ({
@@ -129,8 +131,8 @@ function normalizeFavoriteRows(favorites = []) {
     .filter((favorite) => Number.isInteger(favorite.caseId) && favorite.caseId > 0);
 }
 
-function takeDistinctCases(cases, count, excludedIds = new Set()) {
-  const picked = [];
+function takeDistinctCases(cases: CaseItem[], count: number, excludedIds: Set<number> = new Set()): CaseItem[] {
+  const picked: CaseItem[] = [];
   const seenIds = new Set(excludedIds);
 
   for (const caseItem of cases) {
@@ -143,41 +145,40 @@ function takeDistinctCases(cases, count, excludedIds = new Set()) {
   return picked;
 }
 
-function localizeLabel(value, language, styleLibrary) {
+function localizeLabel(value: string, language: Language, styleLibrary: StyleLibrary | null): string {
   const libraryItems = [
     ...(styleLibrary?.categories || []),
     ...(styleLibrary?.styles || []),
     ...(styleLibrary?.scenes || [])
   ];
-  const match = libraryItems.find((item) => item.value === value || item.id === value);
+  const match = libraryItems.find((item: any) => item.value === value || item.id === value);
   if (match) return textFor(match.title, language);
-  return labelMap[language]?.[value] || value;
+  return (labelMap as any)[language]?.[value] || value;
 }
 
-function localizeTemplateTag(value, language, styleLibrary) {
-  const tagLabel = styleLibrary?.tagLabels?.[value];
+function localizeTemplateTag(value: string, language: Language, styleLibrary: StyleLibrary | null): string {
+  const tagLabel = (styleLibrary?.tagLabels as any)?.[value];
   if (tagLabel) return textFor(tagLabel, language);
   return localizeLabel(value, language, styleLibrary);
 }
 
-function orderByLibrary(values, libraryItems = []) {
+function orderByLibrary(values: string[], libraryItems: { value: string }[] = []): string[] {
   const order = new Map(libraryItems.map((item, index) => [item.value, index]));
   return [...values].sort((a, b) => {
-    const aOrder = order.has(a) ? order.get(a) : Number.MAX_SAFE_INTEGER;
-    const bOrder = order.has(b) ? order.get(b) : Number.MAX_SAFE_INTEGER;
+    const aOrder = order.has(a) ? order.get(a)! : Number.MAX_SAFE_INTEGER;
+    const bOrder = order.has(b) ? order.get(b)! : Number.MAX_SAFE_INTEGER;
     if (aOrder !== bOrder) return aOrder - bOrder;
     return a.localeCompare(b);
   });
 }
 
-async function copyToClipboard(text) {
+async function copyToClipboard(text: string): Promise<void> {
   if (navigator.clipboard?.writeText) {
     try {
       await navigator.clipboard.writeText(text);
       return;
     } catch {
-      // Some embedded browsers block the async clipboard API. Fall back to the
-      // older selection path so the copy button still works in local previews.
+      // fallback
     }
   }
 
@@ -192,56 +193,64 @@ async function copyToClipboard(text) {
   document.body.removeChild(textarea);
 }
 
-function generationErrorMessage(error, language) {
+function generationErrorMessage(error: string, language: Language): string {
   const t = copy[language];
-  if (error === 'FREE_LIMIT_REACHED') return t.freeLimitReached;
-  if (error === 'CREDITS_REQUIRED') return t.creditsRequired;
-  if (error === 'AUTH_REQUIRED') return t.authRequired;
-  if (error === 'FORBIDDEN') return t.adminOnly;
+  if (error === 'FREE_LIMIT_REACHED') return t.freeLimitReached as string;
+  if (error === 'CREDITS_REQUIRED') return t.creditsRequired as string;
+  if (error === 'AUTH_REQUIRED') return t.authRequired as string;
+  if (error === 'FORBIDDEN') return t.adminOnly as string;
   if (error === 'API_KEY_INVALID') return language === 'zh' ? '服务配置异常，请联系管理员' : language === 'ko' ? '서비스 구성 오류. 관리자에게 문의하세요.' : 'Service configuration error, please contact admin';
   if (error === 'UPSTREAM_BUSY') return language === 'zh' ? '生图服务繁忙，请稍后重试' : language === 'ko' ? '생성 서비스가 혼잡합니다. 잠시 후 다시 시도해 주세요.' : 'Generation service is busy, please try again later';
   if (error === 'SERVER_NOT_CONFIGURED') return language === 'zh' ? '生图服务尚未配置，请联系管理员' : language === 'ko' ? '생성 서비스가 아직 구성되지 않았습니다.' : 'Generation service not configured yet';
-  if (error === 'BILLING_NOT_CONFIGURED') return t.checkoutUnavailable;
-  if (error === 'CHECKOUT_FAILED' || error === 'BILLING_PORTAL_FAILED') return t.checkoutFailed;
-  if (error === 'INVALID_PROMPT') return t.promptRequired;
+  if (error === 'BILLING_NOT_CONFIGURED') return t.checkoutUnavailable as string;
+  if (error === 'CHECKOUT_FAILED' || error === 'BILLING_PORTAL_FAILED') return t.checkoutFailed as string;
+  if (error === 'INVALID_PROMPT') return t.promptRequired as string;
   if (error === 'Failed to fetch' || error === 'NetworkError') return language === 'zh' ? '网络连接失败，请检查网络后重试' : language === 'ko' ? '네트워크 연결 실패. 네트워크를 확인하고 다시 시도해 주세요.' : 'Network error, please check your connection and try again';
   if (error === 'GENERATION_FAILED') return language === 'zh' ? '生图失败，请检查提示词后重试' : language === 'ko' ? '생성 실패. 프롬프트를 확인하고 다시 시도해 주세요.' : 'Generation failed, please check your prompt and try again';
   return language === 'zh' ? '生图失败，请稍后重试' : language === 'ko' ? '생성 실패. 나중에 다시 시도해 주세요.' : 'Generation failed, please try again later';
 }
 
-function getAuthHeaders(session) {
-  // PHP session auth — cookies handle it, no Authorization header needed
+function getAuthHeaders(session: Session | null): Record<string, string> {
   if (session?.phpSession) return {};
   return session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {};
 }
 
-function getGenerationQuotaText(profile, language) {
+function getGenerationQuotaText(profile: UserProfile | null, language: Language): string {
   const t = copy[language];
-  if (!profile) return t.authRequired;
+  if (!profile) return t.authRequired as string;
   if (profile.isSuperAdmin) {
-    return profile.creditBalance > 0 ? `${t.superAdminGeneration} ${t.creditsAvailable(profile.creditBalance)}` : t.creditsRequired;
+    const fn = t.creditsAvailable as Function;
+    return profile.creditBalance > 0
+      ? `${t.superAdminGeneration} ${fn(profile.creditBalance)}`
+      : t.creditsRequired as string;
   }
-  if (!profile.freeUsed) return t.oneFreeGeneration;
-  if (profile.creditBalance > 0) return t.creditsAvailable(profile.creditBalance);
-  return t.creditsRequired;
+  if (!profile.freeUsed) return t.oneFreeGeneration as string;
+  if (profile.creditBalance > 0) {
+    const fn = t.creditsAvailable as Function;
+    return fn(profile.creditBalance) as string;
+  }
+  return t.creditsRequired as string;
 }
 
-function productText(value, language) {
+function productText(value: string | Record<string, string> | undefined | null, language: Language): string {
   if (!value) return '';
+  if (typeof value === 'string') return value;
   return value[language] || value.en || value.zh || '';
 }
 
-function formatMembershipStatus(membership, language) {
+function formatMembershipStatus(membership: UserProfile['membership'] | undefined | null, language: Language): string {
   const t = copy[language];
-  if (!membership?.isActive) return t.noPlan;
+  if (!membership?.isActive) return t.noPlan as string;
   const status = membership.status === 'trialing' ? 'trialing' : 'active';
   if (!membership.currentPeriodEnd) return status;
-  const date = new Date(membership.currentPeriodEnd).toLocaleDateString(language === 'zh' ? 'zh-CN' : language === 'ko' ? 'ko-KR' : 'en-US');
+  const date = new Date(membership.currentPeriodEnd).toLocaleDateString(
+    language === 'zh' ? 'zh-CN' : language === 'ko' ? 'ko-KR' : 'en-US'
+  );
   return `${status} · ${t.activeUntil} ${date}`;
 }
 
-function transactionLabel(transaction, language) {
-  const typeMap = {
+function transactionLabel(transaction: Transaction, language: Language): string {
+  const typeMap: Record<string, string> = {
     grant: language === 'zh' ? '赠送' : language === 'ko' ? '증정' : 'Grant',
     purchase: language === 'zh' ? '购买' : language === 'ko' ? '구매' : 'Purchase',
     membership_grant: language === 'zh' ? '会员发放' : language === 'ko' ? '멤버십 증정' : 'Membership grant',
@@ -252,18 +261,18 @@ function transactionLabel(transaction, language) {
   return typeMap[transaction.type] || transaction.type || '-';
 }
 
-function transactionCaseId(transaction) {
+function transactionCaseId(transaction: Transaction): number | null {
   const rawCaseId = transaction?.caseId || transaction?.metadata?.caseId;
   const caseId = Number(rawCaseId);
   return Number.isFinite(caseId) && caseId > 0 ? caseId : null;
 }
 
-function formatTemplatePrompt(item, language, styleLibrary) {
+function formatTemplatePrompt(item: TemplateItem, language: Language, styleLibrary: StyleLibrary | null): string {
   const title = textFor(item.title, language);
   const description = textFor(item.description, language);
   const useWhen = textFor(item.useWhen, language);
-  const guidance = listFor(item.guidance, language);
-  const pitfalls = listFor(item.pitfalls, language);
+  const guidance = listFor(item.guidance as any, language);
+  const pitfalls = listFor(item.pitfalls as any, language);
   const tags = [
     localizeLabel(item.category, language, styleLibrary),
     ...(item.styles || []).map((style) => localizeLabel(style, language, styleLibrary)),
@@ -317,20 +326,20 @@ function formatTemplatePrompt(item, language, styleLibrary) {
   ].join('\n');
 }
 
-function authErrorMessage(error, language) {
+function authErrorMessage(error: any, language: Language): string {
   const t = copy[language];
   const message = String(error?.message || error || '').trim();
   const normalized = message.toLowerCase();
 
   if (error?.status === 429 || normalized.includes('rate limit') || normalized.includes('too many')) {
-    return t.authRateLimited;
+    return t.authRateLimited as string;
   }
 
   if (normalized.includes('provider') || normalized.includes('oauth')) {
-    return t.googleNotConfigured;
+    return t.googleNotConfigured as string;
   }
 
-  return message || t.authError;
+  return message || (t.authError as string);
 }
 
 export {

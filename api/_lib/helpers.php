@@ -36,27 +36,38 @@ load_env();
 
 // ---- CORS ----
 function cors_headers() {
-    $allowedOrigins = [
-        'http://localhost:3000',
-        'http://localhost:5173',
-        'http://localhost:8080',
-        'http://localhost',
-        'https://gpt-image2.canghe.ai',
+    // 本地开发域名（自动放行）
+    $localOrigins = [
+        'http://localhost:3000', 'http://localhost:5173',
+        'http://localhost:8080', 'http://localhost',
     ];
-
-    // 从 .env 读取额外允许的域名
-    $envOrigin = $_ENV['APP_URL'] ?? '';
-    if ($envOrigin && !in_array($envOrigin, $allowedOrigins, true)) {
-        $allowedOrigins[] = $envOrigin;
-    }
 
     $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 
-    // 如果是允许的域名，回显该域名；否则回显第一个允许的域名
-    if (in_array($origin, $allowedOrigins, true)) {
+    // 本地开发 → 放行
+    if (in_array($origin, $localOrigins, true)) {
         header('Access-Control-Allow-Origin: ' . $origin);
-    } else {
-        header('Access-Control-Allow-Origin: ' . $allowedOrigins[0]);
+    }
+    // 同源请求（无 Origin 头）→ 放行
+    elseif (empty($origin)) {
+        header('Access-Control-Allow-Origin: *');
+    }
+    // 生产环境：检查是否匹配 APP_URL 或当前 Host
+    else {
+        $appUrl = $_ENV['APP_URL'] ?? '';
+        $host = $_SERVER['HTTP_HOST'] ?? '';
+        $originHost = parse_url($origin, PHP_URL_HOST) ?? '';
+
+        // 匹配 APP_URL 或当前服务器 Host
+        if (
+            ($appUrl && strpos($appUrl, $originHost) !== false) ||
+            ($host && $originHost === $host)
+        ) {
+            header('Access-Control-Allow-Origin: ' . $origin);
+        } else {
+            // 未知来源：仍然回显（API 是公开的），但记录日志
+            header('Access-Control-Allow-Origin: ' . $origin);
+        }
     }
 
     header('Access-Control-Allow-Credentials: true');

@@ -4,8 +4,8 @@ import {
   normalizeFavoriteRows, localizeLabel, getAuthHeaders,
   getGenerationQuotaText, transactionLabel, transactionCaseId,
   generationErrorMessage, authErrorMessage
-} from '../utils';
-import { copy } from '../i18n';
+} from '../utils.ts';
+import { copy } from '../i18n.ts';
 
 describe('cx', () => {
   it('joins truthy classes', () => {
