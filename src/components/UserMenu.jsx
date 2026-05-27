@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ChevronDown, Coins, CreditCard, Crown, Heart, ImageIcon, LogIn,
   LogOut, ReceiptText, Settings, ShieldCheck, UserCircle
@@ -11,7 +11,21 @@ import './UserMenu.css';
 function UserMenu({ language, session, profile, onSignIn, onSignOut, onAdmin, onBilling, onAccount, onFavorites, onHistory }) {
   const t = copy[language];
   const [open, setOpen] = useState(false);
+  const [genCost, setGenCost] = useState(0.09);
   const ref = useDropdownDismiss(open, setOpen);
+
+  useEffect(() => {
+    fetch('/images20/api/features.php')
+      .then(r => r.json())
+      .then(f => {
+        const cost = parseFloat(f.gen_cost_yuan);
+        if (cost > 0) setGenCost(cost);
+      })
+      .catch(() => {});
+  }, []);
+
+  const balance = Number(profile?.creditBalance || 0);
+  const canGenerate = genCost > 0 ? Math.floor(balance / genCost) : 0;
 
   if (!session) {
     return (
@@ -60,7 +74,11 @@ function UserMenu({ language, session, profile, onSignIn, onSignOut, onAdmin, on
             ) : null}
             <span className="userStat">
               <Coins size={15} />
-              ¥{Number(profile?.creditBalance || 0).toFixed(2)}
+              ¥{balance.toFixed(2)}
+            </span>
+            <span className="userStat">
+              <ImageIcon size={15} />
+              {language === 'zh' ? `可生图 ${canGenerate} 张` : language === 'ko' ? `${canGenerate}장 생성 가능` : `${canGenerate} images`}
             </span>
             <span className="userStat">
               <Crown size={15} />
