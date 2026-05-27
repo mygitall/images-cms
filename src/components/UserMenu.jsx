@@ -60,7 +60,7 @@ function UserMenu({ language, session, profile, onSignIn, onSignOut, onAdmin, on
             ) : null}
             <span className="userStat">
               <Coins size={15} />
-              {profile?.creditBalance || 0} {t.credits}
+              ¥{Number(profile?.creditBalance || 0).toFixed(2)}
             </span>
             <span className="userStat">
               <Crown size={15} />

@@ -149,7 +149,7 @@ function AccountPanel({
             <div className="accountMetrics">
               <div>
                 <span>{t.creditBalance}</span>
-                <strong>{profile?.creditBalance || 0}</strong>
+                <strong>¥{Number(profile?.creditBalance || 0).toFixed(2)}</strong>
               </div>
               <div>
                 <span>{t.currentPlan}</span>

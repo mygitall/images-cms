@@ -164,7 +164,7 @@ function BillingPanel({
         <div className="billingSummary">
           <div>
             <span>{t.balanceTitle}</span>
-            <strong>{profile?.creditBalance || 0}</strong>
+            <strong>¥{Number(profile?.creditBalance || 0).toFixed(2)}</strong>
             <em>{t.credits}</em>
           </div>
           <div>
